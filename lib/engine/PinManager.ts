@@ -123,7 +123,6 @@ export class PinManager {
 
   private removePin(pin: Pin): void {
     this.scene.remove(pin.handle);
-    pin.handle.geometry; // shared, don't dispose
     (pin.handle.material as THREE.MeshBasicMaterial).dispose();
     this.pins = this.pins.filter((p) => p.id !== pin.id);
     this.warpSolver.solve(this.pins, this.meshBuilder);
@@ -131,6 +130,16 @@ export class PinManager {
 
   /** Re-apply warp after mesh rebuild. Pins keep their origin/position. */
   reapplyWarp(): void {
+    this.warpSolver.solve(this.pins, this.meshBuilder);
+  }
+
+  /** Remove all pins and reset mesh to unwarped state */
+  clearAll(): void {
+    for (const pin of this.pins) {
+      this.scene.remove(pin.handle);
+      (pin.handle.material as THREE.MeshBasicMaterial).dispose();
+    }
+    this.pins = [];
     this.warpSolver.solve(this.pins, this.meshBuilder);
   }
 

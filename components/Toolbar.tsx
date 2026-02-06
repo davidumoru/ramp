@@ -6,18 +6,26 @@ interface ToolbarProps {
   onImageUpload: (image: HTMLImageElement) => void;
   onSegmentsChange: (segments: number) => void;
   onTogglePins: () => void;
+  onToggleWireframe: () => void;
+  onReset: () => void;
   onFullscreen: () => void;
   segments: number;
   pinsVisible: boolean;
+  wireframe: boolean;
+  hasTexture: boolean;
 }
 
 export function Toolbar({
   onImageUpload,
   onSegmentsChange,
   onTogglePins,
+  onToggleWireframe,
+  onReset,
   onFullscreen,
   segments,
   pinsVisible,
+  wireframe,
+  hasTexture,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,7 +38,6 @@ export function Toolbar({
       img.onload = () => onImageUpload(img);
       img.src = URL.createObjectURL(file);
 
-      // Reset so the same file can be re-selected
       e.target.value = "";
     },
     [onImageUpload]
@@ -99,7 +106,45 @@ export function Toolbar({
       <div className="toolbar-divider" aria-hidden="true" />
 
       <button
-        className="toolbar-btn"
+        className={`toolbar-btn ${wireframe ? "toolbar-btn-active" : ""}`}
+        onClick={onToggleWireframe}
+        aria-label={wireframe ? "Show texture" : "Show wireframe"}
+        aria-pressed={wireframe}
+        title={
+          hasTexture
+            ? wireframe
+              ? "Switch to texture view"
+              : "Switch to wireframe view"
+            : "Wireframe (upload an image first)"
+        }
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <rect
+            x="2"
+            y="2"
+            width="12"
+            height="12"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M2 8h12M8 2v12M2 5h12M2 11h12M5 2v12M11 2v12"
+            stroke="currentColor"
+            strokeWidth="0.75"
+            opacity="0.6"
+          />
+        </svg>
+        Wire
+      </button>
+
+      <button
+        className={`toolbar-btn ${pinsVisible ? "toolbar-btn-active" : ""}`}
         onClick={onTogglePins}
         aria-label={pinsVisible ? "Hide pins" : "Show pins"}
         aria-pressed={pinsVisible}
@@ -127,6 +172,38 @@ export function Toolbar({
           />
         </svg>
         Pins
+      </button>
+
+      <div className="toolbar-divider" aria-hidden="true" />
+
+      <button
+        className="toolbar-btn"
+        onClick={onReset}
+        aria-label="Reset all pins and warping"
+        title="Remove all pins and reset mesh"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M2 8a6 6 0 0 1 10.3-4.2M14 8a6 6 0 0 1-10.3 4.2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M12 1v3.5h-3.5M4 15v-3.5h3.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        Reset
       </button>
 
       <button

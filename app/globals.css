@@ -118,6 +118,12 @@ body {
   }
 }
 
+.toolbar-btn-active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
 .toolbar-btn:active {
   transform: scale(0.97);
 }

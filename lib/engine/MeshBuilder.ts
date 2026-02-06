@@ -63,14 +63,36 @@ export class MeshBuilder {
     this.basePositions = new Float32Array(pos);
   }
 
+  get hasTexture(): boolean {
+    return this.material.map !== null;
+  }
+
+  get wireframe(): boolean {
+    return this.material.wireframe;
+  }
+
   setTexture(image: HTMLImageElement): void {
     const texture = new THREE.Texture(image);
     texture.needsUpdate = true;
     texture.colorSpace = THREE.SRGBColorSpace;
 
+    if (this.material.map) {
+      this.material.map.dispose();
+    }
+
     this.material.map = texture;
     this.material.wireframe = false;
     this.material.color.set(0xffffff);
+    this.material.needsUpdate = true;
+  }
+
+  setWireframe(enabled: boolean): void {
+    this.material.wireframe = enabled;
+    if (enabled) {
+      this.material.color.set(0x333333);
+    } else if (this.material.map) {
+      this.material.color.set(0xffffff);
+    }
     this.material.needsUpdate = true;
   }
 

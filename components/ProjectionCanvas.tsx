@@ -21,6 +21,8 @@ export function ProjectionCanvas() {
 
   const [segments, setSegments] = useState(DEFAULT_SEGMENTS);
   const [pinsVisible, setPinsVisible] = useState(true);
+  const [wireframe, setWireframe] = useState(true);
+  const [hasTexture, setHasTexture] = useState(false);
 
   // Initialize Three.js engine
   useEffect(() => {
@@ -78,6 +80,8 @@ export function ProjectionCanvas() {
 
   const handleImageUpload = useCallback((image: HTMLImageElement) => {
     meshRef.current?.setTexture(image);
+    setWireframe(false);
+    setHasTexture(true);
   }, []);
 
   const handleSegmentsChange = useCallback((newSegments: number) => {
@@ -94,6 +98,18 @@ export function ProjectionCanvas() {
       pinRef.current?.setPinsVisible(next);
       return next;
     });
+  }, []);
+
+  const handleToggleWireframe = useCallback(() => {
+    setWireframe((prev) => {
+      const next = !prev;
+      meshRef.current?.setWireframe(next);
+      return next;
+    });
+  }, []);
+
+  const handleReset = useCallback(() => {
+    pinRef.current?.clearAll();
   }, []);
 
   const handleFullscreen = useCallback(() => {
@@ -114,9 +130,13 @@ export function ProjectionCanvas() {
         onImageUpload={handleImageUpload}
         onSegmentsChange={handleSegmentsChange}
         onTogglePins={handleTogglePins}
+        onToggleWireframe={handleToggleWireframe}
+        onReset={handleReset}
         onFullscreen={handleFullscreen}
         segments={segments}
         pinsVisible={pinsVisible}
+        wireframe={wireframe}
+        hasTexture={hasTexture}
       />
     </div>
   );
