@@ -175,3 +175,9 @@ body {
   min-width: 24px;
   text-align: right;
 }
+
+.toolbar-segment-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

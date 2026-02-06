@@ -1,6 +1,13 @@
 import * as THREE from "three";
 import { Surface } from "./Surface";
+import type { SurfacePin } from "./types";
 import type { SceneManager } from "./SceneManager";
+
+type DragTarget =
+  | { type: "corner"; surface: Surface; cornerIndex: number }
+  | { type: "pin"; surface: Surface; pin: SurfacePin }
+  | { type: "midpoint"; surface: Surface; edgeIndex: number }
+  | null;
 
 export class SurfaceManager {
   private surfaces: Surface[] = [];
@@ -12,19 +19,22 @@ export class SurfaceManager {
   private mouse = new THREE.Vector2();
 
   private selectedSurface: Surface | null = null;
-  private dragSurface: Surface | null = null;
-  private dragCornerIndex = -1;
+  private dragTarget: DragTarget = null;
   private dragOffset = new THREE.Vector2();
 
   private handlesVisible = true;
 
   private onSelectionChange: ((id: string | null) => void) | null = null;
   private onSurfaceCountChange: ((count: number) => void) | null = null;
+  private onSegmentsChange: ((segments: number) => void) | null = null;
+  private onBezierChange: ((enabled: boolean) => void) | null = null;
 
   private boundOnPointerDown: (e: PointerEvent) => void;
   private boundOnPointerMove: (e: PointerEvent) => void;
   private boundOnPointerUp: (e: PointerEvent) => void;
   private boundOnKeyDown: (e: KeyboardEvent) => void;
+  private boundOnDblClick: (e: MouseEvent) => void;
+  private boundOnContextMenu: (e: MouseEvent) => void;
 
   constructor(sceneManager: SceneManager, canvas: HTMLCanvasElement) {
     this.scene = sceneManager.scene;
@@ -35,10 +45,14 @@ export class SurfaceManager {
     this.boundOnPointerMove = this.onPointerMove.bind(this);
     this.boundOnPointerUp = this.onPointerUp.bind(this);
     this.boundOnKeyDown = this.onKeyDown.bind(this);
+    this.boundOnDblClick = this.onDblClick.bind(this);
+    this.boundOnContextMenu = this.onContextMenu.bind(this);
 
     canvas.addEventListener("pointerdown", this.boundOnPointerDown);
     canvas.addEventListener("pointermove", this.boundOnPointerMove);
     canvas.addEventListener("pointerup", this.boundOnPointerUp);
+    canvas.addEventListener("dblclick", this.boundOnDblClick);
+    canvas.addEventListener("contextmenu", this.boundOnContextMenu);
     window.addEventListener("keydown", this.boundOnKeyDown);
   }
 
@@ -48,6 +62,14 @@ export class SurfaceManager {
 
   setOnSurfaceCountChange(cb: (count: number) => void): void {
     this.onSurfaceCountChange = cb;
+  }
+
+  setOnSegmentsChange(cb: (segments: number) => void): void {
+    this.onSegmentsChange = cb;
+  }
+
+  setOnBezierChange(cb: (enabled: boolean) => void): void {
+    this.onBezierChange = cb;
   }
 
   getSurfaces(): Surface[] {
@@ -110,6 +132,37 @@ export class SurfaceManager {
     }
   }
 
+  // --- Segments ---
+
+  setSegmentsOnSelected(segments: number): void {
+    if (this.selectedSurface) {
+      this.selectedSurface.rebuild(segments);
+    }
+  }
+
+  // --- Bezier ---
+
+  setBezierOnSelected(enabled: boolean): void {
+    if (this.selectedSurface) {
+      this.selectedSurface.setBezierEnabled(enabled);
+    }
+  }
+
+  // --- Duplication ---
+
+  duplicateSelected(): void {
+    if (!this.selectedSurface) return;
+
+    const clone = this.selectedSurface.clone(this.scene);
+    clone.addToScene(this.scene);
+    clone.setHandlesVisible(this.handlesVisible);
+    this.surfaces.push(clone);
+    this.selectSurface(clone);
+    this.onSurfaceCountChange?.(this.surfaces.length);
+  }
+
+  // --- Selection ---
+
   private selectSurface(surface: Surface | null): void {
     if (this.selectedSurface && this.selectedSurface !== surface) {
       this.selectedSurface.setSelected(false);
@@ -119,7 +172,11 @@ export class SurfaceManager {
       surface.setSelected(true);
     }
     this.onSelectionChange?.(surface?.id ?? null);
+    this.onSegmentsChange?.(surface?.getSegments() ?? 32);
+    this.onBezierChange?.(surface?.isBezierEnabled ?? false);
   }
+
+  // --- Mouse/ray helpers ---
 
   private updateMouse(e: MouseEvent): void {
     const rect = this.canvas.getBoundingClientRect();
@@ -127,30 +184,53 @@ export class SurfaceManager {
     this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
   }
 
-  private hitTestHandles(
-    e: MouseEvent
-  ): { surface: Surface; cornerIndex: number } | null {
+  private hitTestAll(e: MouseEvent): DragTarget {
     this.updateMouse(e);
     this.raycaster.setFromCamera(this.mouse, this.camera);
 
-    let closest: { surface: Surface; cornerIndex: number; dist: number } | null =
-      null;
+    let closest: { target: DragTarget; dist: number } | null = null;
 
     for (const surface of this.surfaces) {
+      // Corner handles
       for (let i = 0; i < 4; i++) {
         const handle = surface.handles[i];
         if (!handle.visible) continue;
         const hits = this.raycaster.intersectObject(handle);
-        if (hits.length > 0) {
-          const dist = hits[0].distance;
-          if (!closest || dist < closest.dist) {
-            closest = { surface, cornerIndex: i, dist };
-          }
+        if (hits.length > 0 && (!closest || hits[0].distance < closest.dist)) {
+          closest = {
+            target: { type: "corner", surface, cornerIndex: i },
+            dist: hits[0].distance,
+          };
+        }
+      }
+
+      // Pin handles
+      for (const pin of surface.pins) {
+        if (!pin.handle.visible) continue;
+        const hits = this.raycaster.intersectObject(pin.handle);
+        if (hits.length > 0 && (!closest || hits[0].distance < closest.dist)) {
+          closest = {
+            target: { type: "pin", surface, pin },
+            dist: hits[0].distance,
+          };
+        }
+      }
+
+      // Midpoint handles
+      for (let i = 0; i < 4; i++) {
+        const handle = surface.edgeMidHandles[i];
+        if (!handle || !handle.visible) continue;
+        const hits = this.raycaster.intersectObject(handle);
+        if (hits.length > 0 && (!closest || hits[0].distance < closest.dist)) {
+          closest = {
+            target: { type: "midpoint", surface, edgeIndex: i },
+            dist: hits[0].distance,
+          };
         }
       }
     }
 
-    return closest ? { surface: closest.surface, cornerIndex: closest.cornerIndex } : null;
+    return closest?.target ?? null;
   }
 
   private hitTestSurfaceMesh(e: MouseEvent): Surface | null {
@@ -181,19 +261,32 @@ export class SurfaceManager {
     return intersection;
   }
 
+  // --- Event handlers ---
+
   private onPointerDown(e: PointerEvent): void {
     if (e.button !== 0) return;
 
-    // Check handles first
-    const handleHit = this.hitTestHandles(e);
-    if (handleHit) {
-      this.dragSurface = handleHit.surface;
-      this.dragCornerIndex = handleHit.cornerIndex;
-      this.selectSurface(handleHit.surface);
+    const hit = this.hitTestAll(e);
+    if (hit) {
+      this.dragTarget = hit;
+      this.selectSurface(hit.surface);
 
       const worldPos = this.getWorldPos(e);
-      const corner = handleHit.surface.corners[handleHit.cornerIndex];
-      this.dragOffset.set(corner.x - worldPos.x, corner.y - worldPos.y);
+
+      if (hit.type === "corner") {
+        const corner = hit.surface.corners[hit.cornerIndex];
+        this.dragOffset.set(corner.x - worldPos.x, corner.y - worldPos.y);
+      } else if (hit.type === "pin") {
+        this.dragOffset.set(
+          hit.pin.position.x - worldPos.x,
+          hit.pin.position.y - worldPos.y
+        );
+      } else if (hit.type === "midpoint") {
+        const mid = hit.surface.edgeMidpoints[hit.edgeIndex];
+        if (mid) {
+          this.dragOffset.set(mid.x - worldPos.x, mid.y - worldPos.y);
+        }
+      }
 
       this.canvas.setPointerCapture(e.pointerId);
       return;
@@ -209,21 +302,59 @@ export class SurfaceManager {
   }
 
   private onPointerMove(e: PointerEvent): void {
-    if (!this.dragSurface || this.dragCornerIndex < 0) return;
+    if (!this.dragTarget) return;
 
     const worldPos = this.getWorldPos(e);
-    this.dragSurface.setCorner(
-      this.dragCornerIndex,
-      worldPos.x + this.dragOffset.x,
-      worldPos.y + this.dragOffset.y
-    );
+    const x = worldPos.x + this.dragOffset.x;
+    const y = worldPos.y + this.dragOffset.y;
+
+    if (this.dragTarget.type === "corner") {
+      this.dragTarget.surface.setCorner(this.dragTarget.cornerIndex, x, y);
+    } else if (this.dragTarget.type === "pin") {
+      this.dragTarget.pin.position.set(x, y, 0);
+      this.dragTarget.pin.handle.position.set(x, y, 0.02);
+      this.dragTarget.surface.updateGeometry();
+    } else if (this.dragTarget.type === "midpoint") {
+      this.dragTarget.surface.setEdgeMidpoint(this.dragTarget.edgeIndex, x, y);
+    }
   }
 
   private onPointerUp(e: PointerEvent): void {
-    if (this.dragSurface) {
-      this.dragSurface = null;
-      this.dragCornerIndex = -1;
+    if (this.dragTarget) {
+      this.dragTarget = null;
       this.canvas.releasePointerCapture(e.pointerId);
+    }
+  }
+
+  private onDblClick(e: MouseEvent): void {
+    // Place pin on selected surface at click point
+    if (!this.selectedSurface) return;
+
+    this.updateMouse(e);
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const hits = this.raycaster.intersectObject(this.selectedSurface.mesh);
+    if (hits.length > 0) {
+      const point = hits[0].point;
+      this.selectedSurface.addPin(new THREE.Vector3(point.x, point.y, 0));
+    }
+  }
+
+  private onContextMenu(e: MouseEvent): void {
+    // Right-click removes pin
+    e.preventDefault();
+
+    this.updateMouse(e);
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+
+    for (const surface of this.surfaces) {
+      for (const pin of surface.pins) {
+        if (!pin.handle.visible) continue;
+        const hits = this.raycaster.intersectObject(pin.handle);
+        if (hits.length > 0) {
+          surface.removePin(pin.id);
+          return;
+        }
+      }
     }
   }
 
@@ -244,6 +375,8 @@ export class SurfaceManager {
     this.canvas.removeEventListener("pointerdown", this.boundOnPointerDown);
     this.canvas.removeEventListener("pointermove", this.boundOnPointerMove);
     this.canvas.removeEventListener("pointerup", this.boundOnPointerUp);
+    this.canvas.removeEventListener("dblclick", this.boundOnDblClick);
+    this.canvas.removeEventListener("contextmenu", this.boundOnContextMenu);
     window.removeEventListener("keydown", this.boundOnKeyDown);
 
     for (const surface of this.surfaces) {

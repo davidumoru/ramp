@@ -26,6 +26,16 @@ export interface MeshConfig {
   height: number;
 }
 
+export interface SurfacePin {
+  id: string;
+  /** Position on the bilinear grid where pin was placed */
+  origin: THREE.Vector3;
+  /** Current dragged position */
+  position: THREE.Vector3;
+  /** Visual handle (sphere mesh) */
+  handle: THREE.Mesh;
+}
+
 export interface SurfaceData {
   id: string;
   corners: [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3];

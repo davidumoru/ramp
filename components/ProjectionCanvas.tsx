@@ -15,6 +15,8 @@ export function ProjectionCanvas() {
   const [selectedSurfaceId, setSelectedSurfaceId] = useState<string | null>(null);
   const [handlesVisible, setHandlesVisible] = useState(true);
   const [wireframe, setWireframe] = useState(false);
+  const [selectedSegments, setSelectedSegments] = useState(32);
+  const [bezierEnabled, setBezierEnabled] = useState(false);
 
   // Initialize Three.js engine
   useEffect(() => {
@@ -33,6 +35,8 @@ export function ProjectionCanvas() {
 
     surfaceManager.setOnSurfaceCountChange((count) => setSurfaceCount(count));
     surfaceManager.setOnSelectionChange((id) => setSelectedSurfaceId(id));
+    surfaceManager.setOnSegmentsChange((segments) => setSelectedSegments(segments));
+    surfaceManager.setOnBezierChange((enabled) => setBezierEnabled(enabled));
 
     scene.start();
 
@@ -69,6 +73,10 @@ export function ProjectionCanvas() {
     surfaceManagerRef.current?.deleteSelected();
   }, []);
 
+  const handleDuplicateSurface = useCallback(() => {
+    surfaceManagerRef.current?.duplicateSelected();
+  }, []);
+
   const handleImageUpload = useCallback((image: HTMLImageElement) => {
     surfaceManagerRef.current?.setTextureOnSelected(image);
     setWireframe(false);
@@ -90,9 +98,23 @@ export function ProjectionCanvas() {
     });
   }, []);
 
+  const handleSegmentsChange = useCallback((segments: number) => {
+    setSelectedSegments(segments);
+    surfaceManagerRef.current?.setSegmentsOnSelected(segments);
+  }, []);
+
+  const handleToggleBezier = useCallback(() => {
+    setBezierEnabled((prev) => {
+      const next = !prev;
+      surfaceManagerRef.current?.setBezierOnSelected(next);
+      return next;
+    });
+  }, []);
+
   const handleReset = useCallback(() => {
     surfaceManagerRef.current?.clearAll();
     setWireframe(false);
+    setBezierEnabled(false);
   }, []);
 
   const handleFullscreen = useCallback(() => {
@@ -112,15 +134,20 @@ export function ProjectionCanvas() {
       <Toolbar
         onAddSurface={handleAddSurface}
         onDeleteSurface={handleDeleteSurface}
+        onDuplicateSurface={handleDuplicateSurface}
         onImageUpload={handleImageUpload}
         onToggleHandles={handleToggleHandles}
         onToggleWireframe={handleToggleWireframe}
+        onToggleBezier={handleToggleBezier}
+        onSegmentsChange={handleSegmentsChange}
         onReset={handleReset}
         onFullscreen={handleFullscreen}
         surfaceCount={surfaceCount}
         hasSelection={selectedSurfaceId !== null}
         handlesVisible={handlesVisible}
         wireframe={wireframe}
+        bezierEnabled={bezierEnabled}
+        selectedSegments={selectedSegments}
       />
     </div>
   );

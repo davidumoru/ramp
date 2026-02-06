@@ -5,29 +5,39 @@ import { useCallback, useRef } from "react";
 interface ToolbarProps {
   onAddSurface: () => void;
   onDeleteSurface: () => void;
+  onDuplicateSurface: () => void;
   onImageUpload: (image: HTMLImageElement) => void;
   onToggleHandles: () => void;
   onToggleWireframe: () => void;
+  onToggleBezier: () => void;
+  onSegmentsChange: (segments: number) => void;
   onReset: () => void;
   onFullscreen: () => void;
   surfaceCount: number;
   hasSelection: boolean;
   handlesVisible: boolean;
   wireframe: boolean;
+  bezierEnabled: boolean;
+  selectedSegments: number;
 }
 
 export function Toolbar({
   onAddSurface,
   onDeleteSurface,
+  onDuplicateSurface,
   onImageUpload,
   onToggleHandles,
   onToggleWireframe,
+  onToggleBezier,
+  onSegmentsChange,
   onReset,
   onFullscreen,
   surfaceCount,
   hasSelection,
   handlesVisible,
   wireframe,
+  bezierEnabled,
+  selectedSegments,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -139,6 +149,61 @@ export function Toolbar({
         Delete
       </button>
 
+      <button
+        className="toolbar-btn"
+        onClick={onDuplicateSurface}
+        disabled={!hasSelection}
+        aria-label="Duplicate selected surface"
+        title={hasSelection ? "Duplicate selected surface" : "Select a surface first"}
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <rect
+            x="5"
+            y="1"
+            width="10"
+            height="10"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="1"
+            y="5"
+            width="10"
+            height="10"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+        </svg>
+        Duplicate
+      </button>
+
+      <div className="toolbar-divider" aria-hidden="true" />
+
+      <div className="toolbar-segment-group">
+        <span className="toolbar-label">Segments</span>
+        <input
+          type="range"
+          className="toolbar-slider"
+          min={4}
+          max={64}
+          step={1}
+          value={selectedSegments}
+          onChange={(e) => onSegmentsChange(Number(e.target.value))}
+          disabled={!hasSelection}
+          aria-label="Surface segment count"
+          title={hasSelection ? `Segments: ${selectedSegments}` : "Select a surface first"}
+        />
+        <span className="toolbar-value">{selectedSegments}</span>
+      </div>
+
       <div className="toolbar-divider" aria-hidden="true" />
 
       <button
@@ -193,6 +258,39 @@ export function Toolbar({
           />
         </svg>
         Handles
+      </button>
+
+      <button
+        className={`toolbar-btn ${bezierEnabled ? "toolbar-btn-active" : ""}`}
+        onClick={onToggleBezier}
+        disabled={!hasSelection}
+        aria-label={bezierEnabled ? "Disable bezier edges" : "Enable bezier edges"}
+        aria-pressed={bezierEnabled}
+        title={
+          hasSelection
+            ? bezierEnabled
+              ? "Disable bezier curved edges"
+              : "Enable bezier curved edges"
+            : "Select a surface first"
+        }
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M2 12C2 12 5 2 14 2"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <circle cx="2" cy="12" r="1.5" fill="currentColor" />
+          <circle cx="14" cy="2" r="1.5" fill="currentColor" />
+        </svg>
+        Bezier
       </button>
 
       <button
