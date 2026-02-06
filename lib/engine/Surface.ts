@@ -13,9 +13,6 @@ const EDGE_OPACITY = 0.5;
 const DEFAULT_SEGMENTS = 32;
 const EDGE_SAMPLE_COUNT = 16;
 
-// IDW constants
-const IDW_RADIUS = 0.8;
-const IDW_FALLOFF = 2.5;
 
 export class Surface {
   readonly id: string;
@@ -214,35 +211,36 @@ export class Surface {
 
     // Pass 2: IDW pin warping
     if (this.pins.length > 0) {
+      // Compute radius from surface diagonal so warp scales with surface size
+      const diagX = tr.x - bl.x;
+      const diagY = tr.y - bl.y;
+      const idwRadius = Math.sqrt(diagX * diagX + diagY * diagY) * 0.75;
+
       const array = (posAttr.array as Float32Array);
       for (let i = 0; i < posAttr.count; i++) {
         const i3 = i * 3;
         const bx = array[i3];
         const by = array[i3 + 1];
 
-        let sumWx = 0;
-        let sumWy = 0;
-        let sumW = 0;
+        let dx = 0;
+        let dy = 0;
 
         for (const pin of this.pins) {
-          const dx = bx - pin.origin.x;
-          const dy = by - pin.origin.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const px = bx - pin.origin.x;
+          const py = by - pin.origin.y;
+          const dist = Math.sqrt(px * px + py * py);
 
-          if (dist >= IDW_RADIUS) continue;
+          if (dist >= idwRadius) continue;
 
-          const t = 1 - dist / IDW_RADIUS;
-          const w = Math.pow(t, IDW_FALLOFF);
+          const t = 1 - dist / idwRadius;
+          const w = t * t * t; // cubic falloff — smooth and local
 
-          sumWx += w * (pin.position.x - pin.origin.x);
-          sumWy += w * (pin.position.y - pin.origin.y);
-          sumW += w;
+          dx += w * (pin.position.x - pin.origin.x);
+          dy += w * (pin.position.y - pin.origin.y);
         }
 
-        if (sumW > 0) {
-          array[i3] = bx + sumWx / sumW;
-          array[i3 + 1] = by + sumWy / sumW;
-        }
+        array[i3] = bx + dx;
+        array[i3 + 1] = by + dy;
       }
     }
 
