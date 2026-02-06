@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #111111;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,15 +12,141 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* Projection container */
+.projection-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+.projection-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Toolbar */
+.toolbar {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  z-index: 100;
+  user-select: none;
+}
+
+@media (motion-safe) {
+  .toolbar {
+    animation: fade-in 200ms ease-out;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  cursor: pointer;
+  transition-property: color, background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-btn {
+    transition: none;
+  }
+
+  .toolbar {
+    animation: none;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.toolbar-btn:active {
+  transform: scale(0.97);
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.toolbar-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  padding-left: 4px;
+}
+
+.toolbar-slider {
+  width: 80px;
+  height: 4px;
+  accent-color: #ff4444;
+  cursor: pointer;
+}
+
+.toolbar-value {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-family: var(--font-mono), monospace;
+  min-width: 24px;
+  text-align: right;
 }
