@@ -164,15 +164,15 @@ body {
 }
 
 .toolbar-btn-primary {
-  border-color: rgba(255, 68, 68, 0.4);
-  color: #ff6666;
+  border-color: rgba(229, 77, 46, 0.4);
+  color: #e54d2e;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .toolbar-btn-primary:hover {
-    background: rgba(255, 68, 68, 0.15);
-    color: #ff8888;
-    border-color: rgba(255, 68, 68, 0.5);
+    background: rgba(229, 77, 46, 0.15);
+    color: #ec6142;
+    border-color: rgba(229, 77, 46, 0.5);
   }
 }
 
@@ -197,7 +197,7 @@ body {
 .toolbar-slider {
   width: 80px;
   height: 4px;
-  accent-color: #ff4444;
+  accent-color: #e54d2e;
   cursor: pointer;
 }
 
@@ -290,5 +290,15 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+  input,
+  button,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
