@@ -3,29 +3,31 @@
 import { useCallback, useRef } from "react";
 
 interface ToolbarProps {
+  onAddSurface: () => void;
+  onDeleteSurface: () => void;
   onImageUpload: (image: HTMLImageElement) => void;
-  onSegmentsChange: (segments: number) => void;
-  onTogglePins: () => void;
+  onToggleHandles: () => void;
   onToggleWireframe: () => void;
   onReset: () => void;
   onFullscreen: () => void;
-  segments: number;
-  pinsVisible: boolean;
+  surfaceCount: number;
+  hasSelection: boolean;
+  handlesVisible: boolean;
   wireframe: boolean;
-  hasTexture: boolean;
 }
 
 export function Toolbar({
+  onAddSurface,
+  onDeleteSurface,
   onImageUpload,
-  onSegmentsChange,
-  onTogglePins,
+  onToggleHandles,
   onToggleWireframe,
   onReset,
   onFullscreen,
-  segments,
-  pinsVisible,
+  surfaceCount,
+  hasSelection,
+  handlesVisible,
   wireframe,
-  hasTexture,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -49,6 +51,31 @@ export function Toolbar({
       role="toolbar"
       aria-label="Projection mapping controls"
     >
+      <button
+        className="toolbar-btn toolbar-btn-primary"
+        onClick={onAddSurface}
+        aria-label="Add a new surface"
+        title="Add a new quad surface"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M8 3v10M3 8h10"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+        Surface
+      </button>
+
+      <div className="toolbar-divider" aria-hidden="true" />
+
       <input
         ref={fileInputRef}
         type="file"
@@ -61,8 +88,13 @@ export function Toolbar({
       <button
         className="toolbar-btn"
         onClick={() => fileInputRef.current?.click()}
-        aria-label="Upload image"
-        title="Upload image texture"
+        disabled={!hasSelection}
+        aria-label="Upload image to selected surface"
+        title={
+          hasSelection
+            ? "Upload image to selected surface"
+            : "Select a surface first"
+        }
       >
         <svg
           width="16"
@@ -82,41 +114,93 @@ export function Toolbar({
         Upload
       </button>
 
-      <div className="toolbar-divider" aria-hidden="true" />
-
-      <label className="toolbar-label" htmlFor="grid-density">
-        Grid
-      </label>
-      <input
-        id="grid-density"
-        type="range"
-        min={4}
-        max={64}
-        step={1}
-        value={segments}
-        onChange={(e) => onSegmentsChange(Number(e.target.value))}
-        className="toolbar-slider"
-        aria-label={`Grid density: ${segments} segments`}
-        title={`${segments} segments`}
-      />
-      <span className="toolbar-value" aria-hidden="true">
-        {segments}
-      </span>
+      <button
+        className="toolbar-btn"
+        onClick={onDeleteSurface}
+        disabled={!hasSelection}
+        aria-label="Delete selected surface"
+        title={hasSelection ? "Delete selected surface" : "Select a surface first"}
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 4h10M6 4V3h4v1M5 4v9h6V4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        Delete
+      </button>
 
       <div className="toolbar-divider" aria-hidden="true" />
 
       <button
+        className={`toolbar-btn ${handlesVisible ? "toolbar-btn-active" : ""}`}
+        onClick={onToggleHandles}
+        aria-label={handlesVisible ? "Hide handles" : "Show handles"}
+        aria-pressed={handlesVisible}
+        title={handlesVisible ? "Hide corner handles" : "Show corner handles"}
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <rect
+            x="2"
+            y="2"
+            width="4"
+            height="4"
+            rx="1"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="10"
+            y="2"
+            width="4"
+            height="4"
+            rx="1"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="2"
+            y="10"
+            width="4"
+            height="4"
+            rx="1"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="10"
+            y="10"
+            width="4"
+            height="4"
+            rx="1"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+        </svg>
+        Handles
+      </button>
+
+      <button
         className={`toolbar-btn ${wireframe ? "toolbar-btn-active" : ""}`}
         onClick={onToggleWireframe}
-        aria-label={wireframe ? "Show texture" : "Show wireframe"}
+        aria-label={wireframe ? "Hide wireframe" : "Show wireframe"}
         aria-pressed={wireframe}
-        title={
-          hasTexture
-            ? wireframe
-              ? "Switch to texture view"
-              : "Switch to wireframe view"
-            : "Wireframe (upload an image first)"
-        }
+        title={wireframe ? "Hide wireframe overlay" : "Show wireframe overlay"}
       >
         <svg
           width="16"
@@ -143,44 +227,14 @@ export function Toolbar({
         Wire
       </button>
 
-      <button
-        className={`toolbar-btn ${pinsVisible ? "toolbar-btn-active" : ""}`}
-        onClick={onTogglePins}
-        aria-label={pinsVisible ? "Hide pins" : "Show pins"}
-        aria-pressed={pinsVisible}
-        title={pinsVisible ? "Hide pins" : "Show pins"}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          aria-hidden="true"
-        >
-          <circle
-            cx="8"
-            cy="6"
-            r="3"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          />
-          <path
-            d="M8 9v5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-        Pins
-      </button>
-
       <div className="toolbar-divider" aria-hidden="true" />
 
       <button
         className="toolbar-btn"
         onClick={onReset}
-        aria-label="Reset all pins and warping"
-        title="Remove all pins and reset mesh"
+        disabled={surfaceCount === 0}
+        aria-label="Reset all surfaces"
+        title="Remove all surfaces"
       >
         <svg
           width="16"

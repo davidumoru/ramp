@@ -25,3 +25,14 @@ export interface MeshConfig {
   /** Height of the plane in world units */
   height: number;
 }
+
+export interface SurfaceData {
+  id: string;
+  corners: [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3];
+  textureUrl: string | null;
+}
+
+export interface SurfaceConfig {
+  /** Number of subdivisions along each axis (default 32) */
+  segments: number;
+}

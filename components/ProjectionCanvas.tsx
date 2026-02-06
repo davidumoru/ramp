@@ -2,27 +2,19 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SceneManager } from "@/lib/engine/SceneManager";
-import { MeshBuilder } from "@/lib/engine/MeshBuilder";
-import { WarpSolver } from "@/lib/engine/WarpSolver";
-import { PinManager } from "@/lib/engine/PinManager";
+import { SurfaceManager } from "@/lib/engine/SurfaceManager";
 import { Toolbar } from "./Toolbar";
-
-const DEFAULT_SEGMENTS = 32;
-const WARP_RADIUS = 0.5;
-const WARP_FALLOFF = 2;
 
 export function ProjectionCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<SceneManager | null>(null);
-  const meshRef = useRef<MeshBuilder | null>(null);
-  const warpRef = useRef<WarpSolver | null>(null);
-  const pinRef = useRef<PinManager | null>(null);
+  const surfaceManagerRef = useRef<SurfaceManager | null>(null);
 
-  const [segments, setSegments] = useState(DEFAULT_SEGMENTS);
-  const [pinsVisible, setPinsVisible] = useState(true);
-  const [wireframe, setWireframe] = useState(true);
-  const [hasTexture, setHasTexture] = useState(false);
+  const [surfaceCount, setSurfaceCount] = useState(0);
+  const [selectedSurfaceId, setSelectedSurfaceId] = useState<string | null>(null);
+  const [handlesVisible, setHandlesVisible] = useState(true);
+  const [wireframe, setWireframe] = useState(false);
 
   // Initialize Three.js engine
   useEffect(() => {
@@ -37,21 +29,15 @@ export function ProjectionCanvas() {
     canvas.style.height = `${height}px`;
 
     const scene = new SceneManager(canvas);
-    const mesh = new MeshBuilder({
-      segments: DEFAULT_SEGMENTS,
-      width: 2,
-      height: 1.5,
-    });
-    const warp = new WarpSolver({ radius: WARP_RADIUS, falloff: WARP_FALLOFF });
-    const pins = new PinManager(scene, mesh, warp, canvas);
+    const surfaceManager = new SurfaceManager(scene, canvas);
 
-    scene.scene.add(mesh.mesh);
+    surfaceManager.setOnSurfaceCountChange((count) => setSurfaceCount(count));
+    surfaceManager.setOnSelectionChange((id) => setSelectedSurfaceId(id));
+
     scene.start();
 
     sceneRef.current = scene;
-    meshRef.current = mesh;
-    warpRef.current = warp;
-    pinRef.current = pins;
+    surfaceManagerRef.current = surfaceManager;
 
     // Resize handler
     const onResize = () => {
@@ -68,34 +54,30 @@ export function ProjectionCanvas() {
 
     return () => {
       window.removeEventListener("resize", onResize);
-      pins.dispose();
-      mesh.dispose();
+      surfaceManager.dispose();
       scene.dispose();
       sceneRef.current = null;
-      meshRef.current = null;
-      warpRef.current = null;
-      pinRef.current = null;
+      surfaceManagerRef.current = null;
     };
   }, []);
 
+  const handleAddSurface = useCallback(() => {
+    surfaceManagerRef.current?.addSurface();
+  }, []);
+
+  const handleDeleteSurface = useCallback(() => {
+    surfaceManagerRef.current?.deleteSelected();
+  }, []);
+
   const handleImageUpload = useCallback((image: HTMLImageElement) => {
-    meshRef.current?.setTexture(image);
+    surfaceManagerRef.current?.setTextureOnSelected(image);
     setWireframe(false);
-    setHasTexture(true);
   }, []);
 
-  const handleSegmentsChange = useCallback((newSegments: number) => {
-    setSegments(newSegments);
-    if (meshRef.current) {
-      meshRef.current.rebuild(newSegments);
-      pinRef.current?.reapplyWarp();
-    }
-  }, []);
-
-  const handleTogglePins = useCallback(() => {
-    setPinsVisible((prev) => {
+  const handleToggleHandles = useCallback(() => {
+    setHandlesVisible((prev) => {
       const next = !prev;
-      pinRef.current?.setPinsVisible(next);
+      surfaceManagerRef.current?.setHandlesVisibleAll(next);
       return next;
     });
   }, []);
@@ -103,13 +85,14 @@ export function ProjectionCanvas() {
   const handleToggleWireframe = useCallback(() => {
     setWireframe((prev) => {
       const next = !prev;
-      meshRef.current?.setWireframe(next);
+      surfaceManagerRef.current?.setWireframeAll(next);
       return next;
     });
   }, []);
 
   const handleReset = useCallback(() => {
-    pinRef.current?.clearAll();
+    surfaceManagerRef.current?.clearAll();
+    setWireframe(false);
   }, []);
 
   const handleFullscreen = useCallback(() => {
@@ -127,16 +110,17 @@ export function ProjectionCanvas() {
     <div ref={containerRef} className="projection-container">
       <canvas ref={canvasRef} className="projection-canvas" />
       <Toolbar
+        onAddSurface={handleAddSurface}
+        onDeleteSurface={handleDeleteSurface}
         onImageUpload={handleImageUpload}
-        onSegmentsChange={handleSegmentsChange}
-        onTogglePins={handleTogglePins}
+        onToggleHandles={handleToggleHandles}
         onToggleWireframe={handleToggleWireframe}
         onReset={handleReset}
         onFullscreen={handleFullscreen}
-        segments={segments}
-        pinsVisible={pinsVisible}
+        surfaceCount={surfaceCount}
+        hasSelection={selectedSurfaceId !== null}
+        handlesVisible={handlesVisible}
         wireframe={wireframe}
-        hasTexture={hasTexture}
       />
     </div>
   );
