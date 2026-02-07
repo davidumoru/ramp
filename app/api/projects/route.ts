@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { project } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
+import { generateProjectName } from "@/lib/project-names";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({
@@ -50,10 +51,41 @@ export async function POST(request: Request) {
 
   await db.insert(project).values({
     id,
-    name: name || "Untitled Project",
+    name: name || generateProjectName(),
     data,
     userId: session.user.id,
   });
 
   return NextResponse.json({ id }, { status: 201 });
+}
+
+export async function PATCH(request: Request) {
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { id, name } = body;
+
+  if (!id || typeof name !== "string" || name.trim().length === 0) {
+    return NextResponse.json(
+      { error: "Invalid request" },
+      { status: 400 }
+    );
+  }
+
+  const result = await db
+    .update(project)
+    .set({ name: name.trim(), updatedAt: new Date() })
+    .where(and(eq(project.id, id), eq(project.userId, session.user.id)));
+
+  if (result.rowCount === 0) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

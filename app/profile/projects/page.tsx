@@ -1,12 +1,115 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PencilEdit01Icon, Tick01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 
 interface Project {
   id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
+}
+
+function ProjectRow({
+  project,
+  onRename,
+}: {
+  project: Project;
+  onRename: (id: string, name: string) => Promise<boolean>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(project.name);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
+  const handleSave = useCallback(async () => {
+    const trimmed = draft.trim();
+    if (!trimmed || trimmed === project.name) {
+      setEditing(false);
+      setDraft(project.name);
+      return;
+    }
+    setSaving(true);
+    const ok = await onRename(project.id, trimmed);
+    setSaving(false);
+    if (ok) {
+      setEditing(false);
+    } else {
+      setDraft(project.name);
+      setEditing(false);
+    }
+  }, [draft, project.id, project.name, onRename]);
+
+  const handleCancel = () => {
+    setDraft(project.name);
+    setEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSave();
+    if (e.key === "Escape") handleCancel();
+  };
+
+  return (
+    <div className="rounded-lg border border-neutral-800/60 bg-neutral-900/30 p-5 transition-colors hover:border-neutral-700/60">
+      <div className="flex items-center gap-3">
+        {editing ? (
+          <>
+            <input
+              ref={inputRef}
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={saving}
+              className="flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-[15px] font-medium text-white outline-none focus:border-neutral-500"
+            />
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-green-400"
+              title="Save name"
+            >
+              <HugeiconsIcon icon={Tick01Icon} size={16} strokeWidth={1.5} />
+            </button>
+            <button
+              onClick={handleCancel}
+              disabled={saving}
+              className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-red-400"
+              title="Cancel"
+            >
+              <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={1.5} />
+            </button>
+          </>
+        ) : (
+          <>
+            <h2 className="flex-1 text-[15px] font-medium text-white">{project.name}</h2>
+            <button
+              onClick={() => setEditing(true)}
+              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
+              title="Rename project"
+            >
+              <HugeiconsIcon icon={PencilEdit01Icon} size={16} strokeWidth={1.5} />
+            </button>
+          </>
+        )}
+      </div>
+      <p className="mt-1.5 text-[12px] text-neutral-500">
+        Created {new Date(project.createdAt).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })}
+      </p>
+    </div>
+  );
 }
 
 export default function Projects() {
@@ -23,6 +126,23 @@ export default function Projects() {
       .then(setProjects)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  }, []);
+
+  const handleRename = useCallback(async (id: string, name: string): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/projects", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, name }),
+      });
+      if (!res.ok) return false;
+      setProjects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, name } : p))
+      );
+      return true;
+    } catch {
+      return false;
+    }
   }, []);
 
   if (loading) {
@@ -62,23 +182,7 @@ export default function Projects() {
 
       <div className="mt-8 space-y-3">
         {projects.map((project) => (
-          <div
-            key={project.id}
-            className="rounded-lg border border-neutral-800/60 bg-neutral-900/30 p-5 transition-colors hover:border-neutral-700/60"
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-[15px] font-medium text-white">{project.name}</h2>
-            </div>
-            <p className="mt-1.5 text-[12px] text-neutral-500">
-              Created {new Date(project.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
+          <ProjectRow key={project.id} project={project} onRename={handleRename} />
         ))}
       </div>
     </>
