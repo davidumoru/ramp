@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PencilEdit01Icon, Tick01Icon, Cancel01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { PencilEdit01Icon, Tick01Icon, Cancel01Icon, ArrowRight01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 
 interface Project {
@@ -15,13 +15,16 @@ interface Project {
 function ProjectRow({
   project,
   onRename,
+  onDelete,
 }: {
   project: Project;
   onRename: (id: string, name: string) => Promise<boolean>;
+  onDelete: (id: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(project.name);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -97,6 +100,17 @@ function ProjectRow({
             >
               <HugeiconsIcon icon={PencilEdit01Icon} size={16} strokeWidth={1.5} />
             </button>
+            <button
+              onClick={async () => {
+                setDeleting(true);
+                await onDelete(project.id);
+              }}
+              disabled={deleting}
+              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-red-400"
+              title="Delete project"
+            >
+              <HugeiconsIcon icon={Delete01Icon} size={16} strokeWidth={1.5} />
+            </button>
             <Link
               href={`/?project=${project.id}`}
               className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-white"
@@ -134,6 +148,21 @@ export default function Projects() {
       .then(setProjects)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  }, []);
+
+  const handleDelete = useCallback(async (id: string): Promise<void> => {
+    try {
+      const res = await fetch("/api/projects", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setProjects((prev) => prev.filter((p) => p.id !== id));
+      }
+    } catch {
+      // silently fail
+    }
   }, []);
 
   const handleRename = useCallback(async (id: string, name: string): Promise<boolean> => {
@@ -190,7 +219,7 @@ export default function Projects() {
 
       <div className="mt-8 space-y-3">
         {projects.map((project) => (
-          <ProjectRow key={project.id} project={project} onRename={handleRename} />
+          <ProjectRow key={project.id} project={project} onRename={handleRename} onDelete={handleDelete} />
         ))}
       </div>
     </>
