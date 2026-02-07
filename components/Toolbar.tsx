@@ -29,6 +29,7 @@ interface ToolbarProps {
   onReset: () => void;
   onFullscreen: () => void;
   isLoggedIn: boolean;
+  projectName: string | null;
   surfaceCount: number;
   hasSelection: boolean;
   handlesVisible: boolean;
@@ -50,6 +51,7 @@ export function Toolbar({
   onReset,
   onFullscreen,
   isLoggedIn,
+  projectName,
   surfaceCount,
   hasSelection,
   handlesVisible,
@@ -87,6 +89,13 @@ export function Toolbar({
       role="toolbar"
       aria-label="Projection mapping controls"
     >
+      {projectName && (
+        <>
+          <span className="text-[13px] font-medium text-neutral-400 px-1">{projectName}</span>
+          <div className="toolbar-divider" aria-hidden="true" />
+        </>
+      )}
+
       <button
         className="toolbar-btn toolbar-btn-primary"
         onClick={onAddSurface}

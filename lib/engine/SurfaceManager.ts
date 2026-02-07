@@ -138,6 +138,20 @@ export class SurfaceManager {
     return this.surfaces.map((s) => s.serialize());
   }
 
+  loadSerialized(data: SerializedSurface[]): void {
+    this.clearAll();
+    for (const surfaceData of data) {
+      const surface = Surface.fromSerialized(surfaceData);
+      surface.addToScene(this.scene);
+      surface.setHandlesVisible(this.handlesVisible);
+      this.surfaces.push(surface);
+    }
+    if (this.surfaces.length > 0) {
+      this.selectSurface(this.surfaces[0]);
+    }
+    this.onSurfaceCountChange?.(this.surfaces.length);
+  }
+
   // --- Segments ---
 
   setSegmentsOnSelected(segments: number): void {

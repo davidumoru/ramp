@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { SurfacePin, SerializedSurface } from "./types";
+import type { SurfacePin, SerializedSurface, SerializedPin } from "./types";
 
 const HANDLE_SIZE = 0.035;
 const PIN_SIZE = 0.025;
@@ -500,6 +500,38 @@ export class Surface {
       mid.set(x, y, 0);
       this.updateGeometry();
     }
+  }
+
+  // --- Deserialization ---
+
+  static fromSerialized(data: SerializedSurface): Surface {
+    const s = new Surface(0, 0, 1, 0.75, data.segments);
+
+    // Restore corners
+    for (let i = 0; i < 4; i++) {
+      s.corners[i].set(data.corners[i].x, data.corners[i].y, 0);
+    }
+
+    // Restore bezier state
+    if (data.bezierEnabled) {
+      s.setBezierEnabled(true);
+      for (let i = 0; i < 4; i++) {
+        const mid = data.edgeMidpoints[i];
+        if (mid && s.edgeMidpoints[i]) {
+          s.edgeMidpoints[i]!.set(mid.x, mid.y, 0);
+        }
+      }
+    }
+
+    // Restore pins
+    for (const p of data.pins) {
+      const pin = s.addPin(new THREE.Vector3(p.originX, p.originY, 0));
+      pin.position.set(p.positionX, p.positionY, 0);
+      pin.handle.position.set(p.positionX, p.positionY, 0.02);
+    }
+
+    s.updateGeometry();
+    return s;
   }
 
   // --- Serialization ---

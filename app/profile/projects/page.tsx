@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PencilEdit01Icon, Tick01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { PencilEdit01Icon, Tick01Icon, Cancel01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import Link from "next/link";
 
 interface Project {
   id: string;
@@ -96,6 +97,13 @@ function ProjectRow({
             >
               <HugeiconsIcon icon={PencilEdit01Icon} size={16} strokeWidth={1.5} />
             </button>
+            <Link
+              href={`/?project=${project.id}`}
+              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-white"
+              title="Open in editor"
+            >
+              <HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={1.5} />
+            </Link>
           </>
         )}
       </div>

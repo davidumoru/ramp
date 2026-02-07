@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { SceneManager } from "@/lib/engine/SceneManager";
 import { SurfaceManager } from "@/lib/engine/SurfaceManager";
 import { Toolbar } from "./Toolbar";
@@ -19,6 +20,8 @@ export function ProjectionCanvas() {
   const [selectedSegments, setSelectedSegments] = useState(32);
   const [bezierEnabled, setBezierEnabled] = useState(false);
   const { data: session } = authClient.useSession();
+  const searchParams = useSearchParams();
+  const [projectName, setProjectName] = useState<string | null>(null);
 
   // Initialize Three.js engine
   useEffect(() => {
@@ -66,6 +69,23 @@ export function ProjectionCanvas() {
       surfaceManagerRef.current = null;
     };
   }, []);
+
+  // Load project from query param
+  useEffect(() => {
+    const projectId = searchParams.get("project");
+    if (!projectId || !surfaceManagerRef.current) return;
+
+    fetch(`/api/projects/${projectId}`)
+      .then(async (res) => {
+        if (!res.ok) return;
+        const project = await res.json();
+        if (project.data && Array.isArray(project.data)) {
+          surfaceManagerRef.current?.loadSerialized(project.data);
+          setProjectName(project.name);
+        }
+      })
+      .catch((err) => console.error("Failed to load project:", err));
+  }, [searchParams]);
 
   const handleAddSurface = useCallback(() => {
     surfaceManagerRef.current?.addSurface();
@@ -170,6 +190,7 @@ export function ProjectionCanvas() {
         onReset={handleReset}
         onFullscreen={handleFullscreen}
         isLoggedIn={!!session?.user}
+        projectName={projectName}
         surfaceCount={surfaceCount}
         hasSelection={selectedSurfaceId !== null}
         handlesVisible={handlesVisible}
