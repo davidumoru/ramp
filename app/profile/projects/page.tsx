@@ -22,7 +22,7 @@ interface Project {
   updatedAt: string;
 }
 
-function ProjectRow({
+function ProjectCard({
   project,
   onRename,
   onDelete,
@@ -76,9 +76,9 @@ function ProjectRow({
   };
 
   return (
-    <div className="rounded-lg border border-neutral-800/60 bg-neutral-900/30 p-5 transition-colors hover:border-neutral-700/60">
+    <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden transition-colors hover:border-neutral-700">
       {project.thumbnail && (
-        <div className="mb-3 overflow-hidden rounded-md border border-neutral-800/40">
+        <div className="border-b border-neutral-800/40">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={project.thumbnail}
@@ -88,44 +88,64 @@ function ProjectRow({
           />
         </div>
       )}
-      <div className="flex items-center gap-3">
-        {editing ? (
-          <>
-            <input
-              ref={inputRef}
-              type="text"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={saving}
-              className="flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-[15px] font-medium text-white outline-none focus:border-neutral-500"
-            />
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-green-400"
-              title="Save name"
-            >
-              <HugeiconsIcon icon={Tick01Icon} size={16} strokeWidth={1.5} />
-            </button>
-            <button
-              onClick={handleCancel}
-              disabled={saving}
-              className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-red-400"
-              title="Cancel"
-            >
-              <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={1.5} />
-            </button>
-          </>
-        ) : (
-          <>
-            <h2 className="flex-1 text-[15px] font-medium text-white">{project.name}</h2>
+      <div className="p-4">
+        <div className="flex items-center gap-2">
+          {editing ? (
+            <>
+              <input
+                ref={inputRef}
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={saving}
+                className="flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm font-medium text-white outline-none focus:border-neutral-500"
+              />
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-green-400"
+                title="Save name"
+              >
+                <HugeiconsIcon icon={Tick01Icon} size={16} strokeWidth={1.5} />
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={saving}
+                className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-red-400"
+                title="Cancel"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={1.5} />
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="flex-1 truncate text-sm font-medium text-white">{project.name}</h2>
+              <Link
+                href={`/?project=${project.id}`}
+                className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-white"
+                title="Open in editor"
+              >
+                <HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={1.5} />
+              </Link>
+            </>
+          )}
+        </div>
+        <p className="mt-1.5 text-xs text-neutral-500">
+          {new Date(project.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </p>
+        {!editing && (
+          <div className="mt-3 flex items-center gap-1 border-t border-neutral-800/60 pt-3">
             <button
               onClick={() => setEditing(true)}
-              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
+              className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
               title="Rename project"
             >
-              <HugeiconsIcon icon={PencilEdit01Icon} size={16} strokeWidth={1.5} />
+              <HugeiconsIcon icon={PencilEdit01Icon} size={15} strokeWidth={1.5} />
             </button>
             <button
               onClick={async () => {
@@ -134,10 +154,10 @@ function ProjectRow({
                 setDuplicating(false);
               }}
               disabled={duplicating}
-              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-neutral-300 disabled:opacity-50"
+              className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300 disabled:opacity-50"
               title="Duplicate project"
             >
-              <HugeiconsIcon icon={Copy01Icon} size={16} strokeWidth={1.5} />
+              <HugeiconsIcon icon={Copy01Icon} size={15} strokeWidth={1.5} />
             </button>
             <button
               onClick={async () => {
@@ -146,10 +166,10 @@ function ProjectRow({
                 setExporting(false);
               }}
               disabled={exporting}
-              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-neutral-300 disabled:opacity-50"
+              className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300 disabled:opacity-50"
               title="Export project"
             >
-              <HugeiconsIcon icon={Download01Icon} size={16} strokeWidth={1.5} />
+              <HugeiconsIcon icon={Download01Icon} size={15} strokeWidth={1.5} />
             </button>
             <button
               onClick={async () => {
@@ -157,30 +177,14 @@ function ProjectRow({
                 await onDelete(project.id);
               }}
               disabled={deleting}
-              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-red-400"
+              className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-red-400"
               title="Delete project"
             >
-              <HugeiconsIcon icon={Delete01Icon} size={16} strokeWidth={1.5} />
+              <HugeiconsIcon icon={Delete01Icon} size={15} strokeWidth={1.5} />
             </button>
-            <Link
-              href={`/?project=${project.id}`}
-              className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-white"
-              title="Open in editor"
-            >
-              <HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={1.5} />
-            </Link>
-          </>
+          </div>
         )}
       </div>
-      <p className="mt-1.5 text-[12px] text-neutral-500">
-        Created {new Date(project.createdAt).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-        })}
-      </p>
     </div>
   );
 }
@@ -356,64 +360,67 @@ export default function Projects() {
     return (
       <div className="flex items-center gap-3 py-16 justify-center">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-700 border-t-white" />
-        <span className="text-[13px] text-neutral-500">Loading projects...</span>
+        <span className="text-sm text-neutral-500">Loading projects...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-900/40 bg-red-950/20 p-5 text-center">
-        <p className="text-[13px] text-red-400">{error}</p>
+      <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-5 text-center">
+        <p className="text-sm text-red-400">{error}</p>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-white">Projects</h1>
-          <p className="mt-1 text-[13px] text-neutral-500">
-            {projects.length} saved project{projects.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-        <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            onChange={handleImport}
-            className="hidden"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importing}
-            className="flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-neutral-700 disabled:opacity-50"
-          >
-            <HugeiconsIcon icon={Upload01Icon} size={16} strokeWidth={1.5} />
-            {importing ? "Importing..." : "Import"}
-          </button>
+    <div className="space-y-6">
+      {/* Section header */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-lg font-medium text-white">Projects</h2>
+            <p className="text-sm text-neutral-500">
+              {projects.length} saved project{projects.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+              className="flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-700 disabled:opacity-50"
+            >
+              <HugeiconsIcon icon={Upload01Icon} size={16} strokeWidth={1.5} />
+              {importing ? "Importing..." : "Import"}
+            </button>
+          </div>
         </div>
       </div>
 
       {importError && (
-        <div className="mt-4 rounded-lg border border-red-900/40 bg-red-950/20 p-4">
-          <p className="text-[13px] text-red-400">{importError}</p>
+        <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-4">
+          <p className="text-sm text-red-400">{importError}</p>
         </div>
       )}
 
       {projects.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="text-[15px] text-neutral-400">No saved projects yet.</p>
-          <p className="mt-1 text-[13px] text-neutral-600">
+          <p className="text-sm text-neutral-400">No saved projects yet.</p>
+          <p className="mt-1 text-xs text-neutral-600">
             Add surfaces in the editor and click Save to create your first project.
           </p>
         </div>
       ) : (
-        <div className="mt-8 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects.map((project) => (
-            <ProjectRow
+            <ProjectCard
               key={project.id}
               project={project}
               onRename={handleRename}
@@ -424,6 +431,6 @@ export default function Projects() {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
