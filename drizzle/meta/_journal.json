@@ -8,6 +8,20 @@
       "when": 1770486703383,
       "tag": "0000_gorgeous_silver_sable",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770500853184,
+      "tag": "0001_condemned_rictor",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770501694852,
+      "tag": "0002_fearless_karnak",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,10 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { user as userTable } from "@/lib/db/schema";
+
+const pendingGoogleImages = new Map<string, string>();
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -8,6 +12,11 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+  },
+  user: {
+    deleteUser: {
+      enabled: true,
+    },
   },
   socialProviders: {
     google: {
@@ -32,16 +41,28 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
-          if (!user.image) {
-            const seed = encodeURIComponent(user.email || user.id);
-            return {
-              data: {
-                ...user,
-                image: `https://api.dicebear.com/9.x/glass/svg?seed=${seed}`,
-              },
-            };
+          const seed = encodeURIComponent(user.email || user.id);
+          const dicebearUrl = `https://api.dicebear.com/9.x/glass/svg?seed=${seed}`;
+          const hasExternalImage = user.image && !user.image.includes("api.dicebear.com");
+          if (hasExternalImage) {
+            pendingGoogleImages.set(user.email!, user.image!);
           }
-          return { data: user };
+          return {
+            data: {
+              ...user,
+              image: dicebearUrl,
+            },
+          };
+        },
+        after: async (user) => {
+          const googleImage = pendingGoogleImages.get(user.email);
+          if (googleImage) {
+            pendingGoogleImages.delete(user.email);
+            await db
+              .update(userTable)
+              .set({ googleImage })
+              .where(eq(userTable.id, user.id));
+          }
         },
       },
     },

@@ -144,10 +144,26 @@ export function ProjectionCanvas() {
     if (!data) return false;
 
     try {
+      // Hide handles for clean snapshot
+      const wereVisible = handlesVisible;
+      if (wereVisible) {
+        surfaceManagerRef.current?.setHandlesVisibleAll(false);
+      }
+
+      // Wait one frame for the render to update
+      await new Promise((r) => requestAnimationFrame(r));
+
+      const thumbnail = sceneRef.current?.captureSnapshot() ?? undefined;
+
+      // Restore handles
+      if (wereVisible) {
+        surfaceManagerRef.current?.setHandlesVisibleAll(true);
+      }
+
       const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data }),
+        body: JSON.stringify({ data, thumbnail }),
       });
 
       if (!res.ok) {
@@ -161,7 +177,7 @@ export function ProjectionCanvas() {
       console.error("Failed to save project:", err);
       return false;
     }
-  }, []);
+  }, [handlesVisible]);
 
   const handleFullscreen = useCallback(() => {
     const container = containerRef.current;

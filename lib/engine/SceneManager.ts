@@ -30,6 +30,7 @@ export class SceneManager {
       canvas,
       antialias: true,
       alpha: false,
+      preserveDrawingBuffer: true,
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height, false);
@@ -52,6 +53,20 @@ export class SceneManager {
     this.camera.bottom = -1;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
+  }
+
+  captureSnapshot(targetWidth = 400): string {
+    this.renderer.render(this.scene, this.camera);
+    const source = this.renderer.domElement;
+    const aspect = source.width / source.height;
+    const w = targetWidth;
+    const h = Math.round(w / aspect);
+    const offscreen = document.createElement("canvas");
+    offscreen.width = w;
+    offscreen.height = h;
+    const ctx = offscreen.getContext("2d")!;
+    ctx.drawImage(source, 0, 0, w, h);
+    return offscreen.toDataURL("image/jpeg", 0.7);
   }
 
   dispose(): void {
