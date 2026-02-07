@@ -5,11 +5,19 @@ import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Layers01Icon, User02Icon, Folder01Icon } from "@hugeicons/core-free-icons";
+import {
+  Layers01Icon,
+  DashboardSquare01Icon,
+  Folder01Icon,
+  PaintBrush01Icon,
+  Settings01Icon,
+} from "@hugeicons/core-free-icons";
 
 const navLinks = [
-  { label: "Profile", href: "/profile", icon: User02Icon },
+  { label: "Overview", href: "/profile/overview", icon: DashboardSquare01Icon },
   { label: "Projects", href: "/profile/projects", icon: Folder01Icon },
+  { label: "Preferences", href: "/profile/preferences", icon: PaintBrush01Icon },
+  { label: "Settings", href: "/profile/settings", icon: Settings01Icon },
 ];
 
 export default function ProfileLayout({
@@ -84,7 +92,7 @@ export default function ProfileLayout({
         <nav className="flex-1 px-3 py-2">
           <ul className="space-y-1">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
               return (
                 <li key={link.href}>
                   <Link
@@ -194,7 +202,7 @@ export default function ProfileLayout({
             </Link>
             <nav className="space-y-1">
               {navLinks.map((link) => {
-                const isActive = pathname === link.href;
+                const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
                 return (
                   <Link
                     key={link.href}

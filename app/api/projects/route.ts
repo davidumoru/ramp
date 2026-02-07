@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { project } from "@/lib/db/schema";
+import { project, activityEvent } from "@/lib/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { generateProjectName } from "@/lib/project-names";
+
+async function logActivity(
+  userId: string,
+  action: string,
+  projectId: string | null,
+  projectName: string
+) {
+  await db.insert(activityEvent).values({
+    id: crypto.randomUUID(),
+    userId,
+    action,
+    projectId,
+    projectName,
+  });
+}
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({
@@ -19,6 +34,7 @@ export async function GET(request: Request) {
       id: project.id,
       name: project.name,
       thumbnail: project.thumbnail,
+      folderId: project.folderId,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     })
@@ -39,7 +55,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { name, data, thumbnail } = body;
+  const { name, data, thumbnail, action } = body;
 
   if (!data || !Array.isArray(data)) {
     return NextResponse.json(
@@ -49,14 +65,22 @@ export async function POST(request: Request) {
   }
 
   const id = crypto.randomUUID();
+  const projectName = name || generateProjectName();
 
   await db.insert(project).values({
     id,
-    name: name || generateProjectName(),
+    name: projectName,
     data,
     thumbnail: thumbnail || null,
     userId: session.user.id,
   });
+
+  await logActivity(
+    session.user.id,
+    action === "duplicated" || action === "imported" ? action : "created",
+    id,
+    projectName
+  );
 
   return NextResponse.json({ id }, { status: 201 });
 }
@@ -71,22 +95,39 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { id, name } = body;
+  const { id, name, folderId } = body;
 
-  if (!id || typeof name !== "string" || name.trim().length === 0) {
-    return NextResponse.json(
-      { error: "Invalid request" },
-      { status: 400 }
-    );
+  if (!id) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const updates: Record<string, unknown> = { updatedAt: new Date() };
+
+  if (typeof name === "string" && name.trim().length > 0) {
+    updates.name = name.trim();
+  }
+
+  if (folderId !== undefined) {
+    updates.folderId = folderId || null;
+  }
+
+  if (Object.keys(updates).length === 1) {
+    // Only updatedAt, nothing meaningful to update
+    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
 
   const result = await db
     .update(project)
-    .set({ name: name.trim(), updatedAt: new Date() })
+    .set(updates)
     .where(and(eq(project.id, id), eq(project.userId, session.user.id)));
 
   if (result.rowCount === 0) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // Log activity for rename
+  if (updates.name) {
+    await logActivity(session.user.id, "updated", id, updates.name as string);
   }
 
   return NextResponse.json({ ok: true });
@@ -108,6 +149,19 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
+  // Query project name before deleting for activity log
+  const rows = await db
+    .select({ name: project.name })
+    .from(project)
+    .where(and(eq(project.id, id), eq(project.userId, session.user.id)))
+    .limit(1);
+
+  if (rows.length === 0) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const projectName = rows[0].name;
+
   const result = await db
     .delete(project)
     .where(and(eq(project.id, id), eq(project.userId, session.user.id)));
@@ -115,6 +169,8 @@ export async function DELETE(request: Request) {
   if (result.rowCount === 0) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+
+  await logActivity(session.user.id, "deleted", null, projectName);
 
   return NextResponse.json({ ok: true });
 }

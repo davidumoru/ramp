@@ -80,10 +80,23 @@ export class SurfaceManager {
     return this.selectedSurface;
   }
 
-  addSurface(): Surface {
+  addSurface(options?: {
+    segments?: number;
+    wireframe?: boolean;
+    bezier?: boolean;
+  }): Surface {
     const surface = new Surface();
     surface.addToScene(this.scene);
     surface.setHandlesVisible(this.handlesVisible);
+    if (options?.segments && options.segments !== 32) {
+      surface.rebuild(options.segments);
+    }
+    if (options?.wireframe) {
+      surface.setWireframe(true);
+    }
+    if (options?.bezier) {
+      surface.setBezierEnabled(true);
+    }
     this.surfaces.push(surface);
     this.selectSurface(surface);
     this.onSurfaceCountChange?.(this.surfaces.length);

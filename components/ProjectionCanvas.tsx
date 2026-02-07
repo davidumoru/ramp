@@ -7,11 +7,28 @@ import { SurfaceManager } from "@/lib/engine/SurfaceManager";
 import { Toolbar } from "./Toolbar";
 import { authClient } from "@/lib/auth-client";
 
+interface EditorPrefs {
+  defaultSegments: number;
+  defaultWireframe: boolean;
+  defaultBezier: boolean;
+  autoSave: boolean;
+  autoSaveInterval: number;
+}
+
+const DEFAULT_PREFS: EditorPrefs = {
+  defaultSegments: 32,
+  defaultWireframe: false,
+  defaultBezier: false,
+  autoSave: false,
+  autoSaveInterval: 30,
+};
+
 export function ProjectionCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<SceneManager | null>(null);
   const surfaceManagerRef = useRef<SurfaceManager | null>(null);
+  const prefsRef = useRef<EditorPrefs>(DEFAULT_PREFS);
 
   const [surfaceCount, setSurfaceCount] = useState(0);
   const [selectedSurfaceId, setSelectedSurfaceId] = useState<string | null>(null);
@@ -22,6 +39,8 @@ export function ProjectionCanvas() {
   const { data: session } = authClient.useSession();
   const searchParams = useSearchParams();
   const [projectName, setProjectName] = useState<string | null>(null);
+  const projectIdRef = useRef<string | null>(null);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Initialize Three.js engine
   useEffect(() => {
@@ -70,9 +89,31 @@ export function ProjectionCanvas() {
     };
   }, []);
 
+  // Load preferences on mount
+  useEffect(() => {
+    fetch("/api/preferences")
+      .then(async (res) => {
+        if (!res.ok) return;
+        const data = await res.json();
+        prefsRef.current = {
+          defaultSegments: data.defaultSegments ?? 32,
+          defaultWireframe: data.defaultWireframe ?? false,
+          defaultBezier: data.defaultBezier ?? false,
+          autoSave: data.autoSave ?? false,
+          autoSaveInterval: data.autoSaveInterval ?? 30,
+        };
+        // Apply defaults to initial state
+        setSelectedSegments(prefsRef.current.defaultSegments);
+        setWireframe(prefsRef.current.defaultWireframe);
+        setBezierEnabled(prefsRef.current.defaultBezier);
+      })
+      .catch(() => {});
+  }, []);
+
   // Load project from query param
   useEffect(() => {
     const projectId = searchParams.get("project");
+    projectIdRef.current = projectId;
     if (!projectId || !surfaceManagerRef.current) return;
 
     fetch(`/api/projects/${projectId}`)
@@ -87,8 +128,56 @@ export function ProjectionCanvas() {
       .catch((err) => console.error("Failed to load project:", err));
   }, [searchParams]);
 
+  // Auto-save effect
+  useEffect(() => {
+    // Clear any existing timer
+    if (autoSaveTimerRef.current) {
+      clearInterval(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
+
+    const prefs = prefsRef.current;
+    const projectId = projectIdRef.current;
+
+    if (!prefs.autoSave || !projectId) return;
+
+    autoSaveTimerRef.current = setInterval(async () => {
+      const data = surfaceManagerRef.current?.serialize();
+      if (!data || data.length === 0) return;
+
+      try {
+        // Hide handles for clean snapshot
+        const wereVisible =
+          surfaceManagerRef.current !== null;
+        surfaceManagerRef.current?.setHandlesVisibleAll(false);
+        await new Promise((r) => requestAnimationFrame(r));
+        const thumbnail = sceneRef.current?.captureSnapshot() ?? undefined;
+        surfaceManagerRef.current?.setHandlesVisibleAll(true);
+
+        await fetch(`/api/projects/${projectId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data, thumbnail }),
+        });
+      } catch {
+        // silently fail auto-save
+      }
+    }, prefs.autoSaveInterval * 1000);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearInterval(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
+      }
+    };
+  }, [searchParams]);
+
   const handleAddSurface = useCallback(() => {
-    surfaceManagerRef.current?.addSurface();
+    surfaceManagerRef.current?.addSurface({
+      segments: prefsRef.current.defaultSegments,
+      wireframe: prefsRef.current.defaultWireframe,
+      bezier: prefsRef.current.defaultBezier,
+    });
   }, []);
 
   const handleDeleteSurface = useCallback(() => {
@@ -160,16 +249,37 @@ export function ProjectionCanvas() {
         surfaceManagerRef.current?.setHandlesVisibleAll(true);
       }
 
-      const res = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data, thumbnail }),
-      });
+      const projectId = projectIdRef.current;
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        console.error("Failed to save project:", res.status, err);
-        return false;
+      if (projectId) {
+        // Update existing project
+        const res = await fetch(`/api/projects/${projectId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data, thumbnail }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          console.error("Failed to save project:", res.status, err);
+          return false;
+        }
+      } else {
+        // Create new project
+        const res = await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data, thumbnail }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => null);
+          console.error("Failed to save project:", res.status, err);
+          return false;
+        }
+
+        const { id } = await res.json();
+        projectIdRef.current = id;
       }
 
       return true;

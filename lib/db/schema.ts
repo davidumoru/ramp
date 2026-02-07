@@ -3,6 +3,7 @@ import {
   text,
   timestamp,
   boolean,
+  integer,
   jsonb,
 } from "drizzle-orm/pg-core";
 
@@ -48,15 +49,51 @@ export const account = pgTable("account", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const folder = pgTable("folder", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const project = pgTable("project", {
   id: text("id").primaryKey(),
   name: text("name").notNull().default("Untitled Project"),
   data: jsonb("data").notNull(),
   thumbnail: text("thumbnail"),
+  folderId: text("folder_id").references(() => folder.id, {
+    onDelete: "set null",
+  }),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const activityEvent = pgTable("activity_event", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  action: text("action").notNull(),
+  projectId: text("project_id"),
+  projectName: text("project_name").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const editorPreference = pgTable("editor_preference", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  defaultSegments: integer("default_segments").notNull().default(32),
+  defaultWireframe: boolean("default_wireframe").notNull().default(false),
+  defaultBezier: boolean("default_bezier").notNull().default(false),
+  autoSave: boolean("auto_save").notNull().default(false),
+  autoSaveInterval: integer("auto_save_interval").notNull().default(30),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

@@ -11,6 +11,9 @@ import {
   Copy01Icon,
   Download01Icon,
   Upload01Icon,
+  Folder01Icon,
+  FolderAddIcon,
+  ArrowDown01Icon,
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 
@@ -18,22 +21,34 @@ interface Project {
   id: string;
   name: string;
   thumbnail?: string | null;
+  folderId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Folder {
+  id: string;
+  name: string;
   createdAt: string;
   updatedAt: string;
 }
 
 function ProjectCard({
   project,
+  folders,
   onRename,
   onDelete,
   onDuplicate,
   onExport,
+  onMoveToFolder,
 }: {
   project: Project;
+  folders: Folder[];
   onRename: (id: string, name: string) => Promise<boolean>;
   onDelete: (id: string) => Promise<void>;
   onDuplicate: (id: string) => Promise<void>;
   onExport: (id: string) => Promise<void>;
+  onMoveToFolder: (projectId: string, folderId: string | null) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(project.name);
@@ -41,11 +56,24 @@ function ProjectCard({
   const [deleting, setDeleting] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showFolderMenu, setShowFolderMenu] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const folderMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (editing) inputRef.current?.focus();
   }, [editing]);
+
+  useEffect(() => {
+    if (!showFolderMenu) return;
+    const handleClick = (e: MouseEvent) => {
+      if (folderMenuRef.current && !folderMenuRef.current.contains(e.target as Node)) {
+        setShowFolderMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showFolderMenu]);
 
   const handleSave = useCallback(async () => {
     const trimmed = draft.trim();
@@ -171,6 +199,45 @@ function ProjectCard({
             >
               <HugeiconsIcon icon={Download01Icon} size={15} strokeWidth={1.5} />
             </button>
+            {/* Move to folder */}
+            <div className="relative" ref={folderMenuRef}>
+              <button
+                onClick={() => setShowFolderMenu(!showFolderMenu)}
+                className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
+                title="Move to folder"
+              >
+                <HugeiconsIcon icon={Folder01Icon} size={15} strokeWidth={1.5} />
+              </button>
+              {showFolderMenu && (
+                <div className="absolute bottom-full left-0 z-10 mb-1 w-44 rounded-lg border border-neutral-700 bg-neutral-800 py-1 shadow-lg">
+                  <button
+                    onClick={() => {
+                      onMoveToFolder(project.id, null);
+                      setShowFolderMenu(false);
+                    }}
+                    className={`w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-neutral-700 ${
+                      !project.folderId ? "text-[#e54d2e]" : "text-neutral-300"
+                    }`}
+                  >
+                    No folder
+                  </button>
+                  {folders.map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => {
+                        onMoveToFolder(project.id, f.id);
+                        setShowFolderMenu(false);
+                      }}
+                      className={`w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-neutral-700 ${
+                        project.folderId === f.id ? "text-[#e54d2e]" : "text-neutral-300"
+                      }`}
+                    >
+                      {f.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               onClick={async () => {
                 setDeleting(true);
@@ -189,24 +256,44 @@ function ProjectCard({
   );
 }
 
+type FilterMode = "all" | "unfiled" | string;
+
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [filter, setFilter] = useState<FilterMode>("all");
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(new Set());
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [folderDraft, setFolderDraft] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch("/api/projects")
-      .then(async (res) => {
+    Promise.all([
+      fetch("/api/projects").then(async (res) => {
         if (!res.ok) throw new Error("Failed to load projects");
         return res.json();
+      }),
+      fetch("/api/folders").then(async (res) => {
+        if (!res.ok) return [];
+        return res.json();
+      }),
+    ])
+      .then(([projectsData, foldersData]) => {
+        setProjects(projectsData);
+        setFolders(foldersData);
       })
-      .then(setProjects)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (editingFolderId) folderInputRef.current?.focus();
+  }, [editingFolderId]);
 
   const handleDelete = useCallback(async (id: string): Promise<void> => {
     try {
@@ -253,6 +340,7 @@ export default function Projects() {
           name: `${original.name} (copy)`,
           data: original.data,
           thumbnail: original.thumbnail || null,
+          action: "duplicated",
         }),
       });
       if (!res.ok) return;
@@ -262,6 +350,7 @@ export default function Projects() {
           id: newId,
           name: `${original.name} (copy)`,
           thumbnail: original.thumbnail || null,
+          folderId: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -314,7 +403,6 @@ export default function Projects() {
         return;
       }
 
-      // Validate each surface has required fields
       for (const surface of parsed.data) {
         if (!surface.corners || !Array.isArray(surface.corners)) {
           setImportError("Invalid project file: surfaces must have 'corners' array");
@@ -327,7 +415,7 @@ export default function Projects() {
       const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, data: parsed.data }),
+        body: JSON.stringify({ name, data: parsed.data, action: "imported" }),
       });
 
       if (!res.ok) {
@@ -342,6 +430,7 @@ export default function Projects() {
           id,
           name,
           thumbnail: null,
+          folderId: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -351,10 +440,121 @@ export default function Projects() {
       setImportError("Failed to parse project file. Ensure it is valid JSON.");
     } finally {
       setImporting(false);
-      // Reset file input so the same file can be re-imported
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, []);
+
+  const handleMoveToFolder = useCallback(
+    async (projectId: string, folderId: string | null): Promise<void> => {
+      try {
+        const res = await fetch("/api/projects", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: projectId, folderId }),
+        });
+        if (res.ok) {
+          setProjects((prev) =>
+            prev.map((p) => (p.id === projectId ? { ...p, folderId } : p))
+          );
+        }
+      } catch {
+        // silently fail
+      }
+    },
+    []
+  );
+
+  const handleCreateFolder = useCallback(async () => {
+    const name = "New Folder";
+    try {
+      const res = await fetch("/api/folders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setFolders((prev) => [
+        ...prev,
+        {
+          id: data.id,
+          name: data.name,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]);
+      setEditingFolderId(data.id);
+      setFolderDraft(data.name);
+    } catch {
+      // silently fail
+    }
+  }, []);
+
+  const handleRenameFolder = useCallback(
+    async (id: string, name: string): Promise<boolean> => {
+      try {
+        const res = await fetch("/api/folders", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, name }),
+        });
+        if (!res.ok) return false;
+        setFolders((prev) =>
+          prev.map((f) => (f.id === id ? { ...f, name } : f))
+        );
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    []
+  );
+
+  const handleDeleteFolder = useCallback(async (id: string): Promise<void> => {
+    try {
+      const res = await fetch("/api/folders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) {
+        setFolders((prev) => prev.filter((f) => f.id !== id));
+        // Projects in deleted folder become unfiled
+        setProjects((prev) =>
+          prev.map((p) => (p.folderId === id ? { ...p, folderId: null } : p))
+        );
+        if (filter === id) setFilter("all");
+      }
+    } catch {
+      // silently fail
+    }
+  }, [filter]);
+
+  const toggleFolderCollapse = (folderId: string) => {
+    setCollapsedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  };
+
+  const filteredProjects =
+    filter === "all"
+      ? projects
+      : filter === "unfiled"
+      ? projects.filter((p) => !p.folderId)
+      : projects.filter((p) => p.folderId === filter);
+
+  // Group projects by folder for display
+  const unfiledProjects = projects.filter((p) => !p.folderId);
+  const projectsByFolder = folders.map((f) => ({
+    folder: f,
+    projects: projects.filter((p) => p.folderId === f.id),
+  }));
 
   if (loading) {
     return (
@@ -384,7 +584,14 @@ export default function Projects() {
               {projects.length} saved project{projects.length !== 1 ? "s" : ""}
             </p>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCreateFolder}
+              className="flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
+            >
+              <HugeiconsIcon icon={FolderAddIcon} size={16} strokeWidth={1.5} />
+              New Folder
+            </button>
             <input
               ref={fileInputRef}
               type="file"
@@ -404,6 +611,45 @@ export default function Projects() {
         </div>
       </div>
 
+      {/* Filter bar */}
+      {folders.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setFilter("all")}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              filter === "all"
+                ? "bg-neutral-700 text-white"
+                : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter("unfiled")}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              filter === "unfiled"
+                ? "bg-neutral-700 text-white"
+                : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+            }`}
+          >
+            Unfiled
+          </button>
+          {folders.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                filter === f.id
+                  ? "bg-neutral-700 text-white"
+                  : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+              }`}
+            >
+              {f.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {importError && (
         <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-4">
           <p className="text-sm text-red-400">{importError}</p>
@@ -417,18 +663,161 @@ export default function Projects() {
             Add surfaces in the editor and click Save to create your first project.
           </p>
         </div>
-      ) : (
+      ) : filter !== "all" ? (
+        /* Flat filtered view */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((project) => (
+          {filteredProjects.map((project) => (
             <ProjectCard
               key={project.id}
               project={project}
+              folders={folders}
               onRename={handleRename}
               onDelete={handleDelete}
               onDuplicate={handleDuplicate}
               onExport={handleExport}
+              onMoveToFolder={handleMoveToFolder}
             />
           ))}
+          {filteredProjects.length === 0 && (
+            <div className="col-span-full py-8 text-center">
+              <p className="text-sm text-neutral-500">No projects in this view.</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Grouped view */
+        <div className="space-y-6">
+          {/* Folder groups */}
+          {projectsByFolder.map(({ folder: f, projects: folderProjects }) => (
+            <div key={f.id}>
+              <div className="flex items-center gap-2 mb-3">
+                <button
+                  onClick={() => toggleFolderCollapse(f.id)}
+                  className="rounded-md p-1 text-neutral-400 hover:text-white transition-colors"
+                >
+                  <HugeiconsIcon
+                    icon={collapsedFolders.has(f.id) ? ArrowRight01Icon : ArrowDown01Icon}
+                    size={14}
+                    strokeWidth={1.5}
+                  />
+                </button>
+                <HugeiconsIcon
+                  icon={Folder01Icon}
+                  size={16}
+                  strokeWidth={1.5}
+                  className="text-neutral-400"
+                />
+                {editingFolderId === f.id ? (
+                  <input
+                    ref={folderInputRef}
+                    type="text"
+                    value={folderDraft}
+                    onChange={(e) => setFolderDraft(e.target.value)}
+                    onKeyDown={async (e) => {
+                      if (e.key === "Enter") {
+                        const trimmed = folderDraft.trim();
+                        if (trimmed && trimmed !== f.name) {
+                          await handleRenameFolder(f.id, trimmed);
+                        }
+                        setEditingFolderId(null);
+                      }
+                      if (e.key === "Escape") setEditingFolderId(null);
+                    }}
+                    onBlur={async () => {
+                      const trimmed = folderDraft.trim();
+                      if (trimmed && trimmed !== f.name) {
+                        await handleRenameFolder(f.id, trimmed);
+                      }
+                      setEditingFolderId(null);
+                    }}
+                    className="rounded-md border border-neutral-700 bg-neutral-800 px-2 py-0.5 text-sm font-medium text-white outline-none focus:border-neutral-500"
+                  />
+                ) : (
+                  <span
+                    className="text-sm font-medium text-white cursor-pointer"
+                    onDoubleClick={() => {
+                      setEditingFolderId(f.id);
+                      setFolderDraft(f.name);
+                    }}
+                  >
+                    {f.name}
+                  </span>
+                )}
+                <span className="text-xs text-neutral-500">
+                  ({folderProjects.length})
+                </span>
+                <button
+                  onClick={() => {
+                    setEditingFolderId(f.id);
+                    setFolderDraft(f.name);
+                  }}
+                  className="rounded-md p-1 text-neutral-600 hover:text-neutral-300 transition-colors"
+                  title="Rename folder"
+                >
+                  <HugeiconsIcon icon={PencilEdit01Icon} size={13} strokeWidth={1.5} />
+                </button>
+                <button
+                  onClick={() => handleDeleteFolder(f.id)}
+                  className="rounded-md p-1 text-neutral-600 hover:text-red-400 transition-colors"
+                  title="Delete folder"
+                >
+                  <HugeiconsIcon icon={Delete01Icon} size={13} strokeWidth={1.5} />
+                </button>
+              </div>
+              {!collapsedFolders.has(f.id) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ml-7">
+                  {folderProjects.length === 0 ? (
+                    <p className="text-xs text-neutral-600 col-span-full py-2">
+                      No projects in this folder.
+                    </p>
+                  ) : (
+                    folderProjects.map((project) => (
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        folders={folders}
+                        onRename={handleRename}
+                        onDelete={handleDelete}
+                        onDuplicate={handleDuplicate}
+                        onExport={handleExport}
+                        onMoveToFolder={handleMoveToFolder}
+                      />
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Unfiled projects */}
+          {unfiledProjects.length > 0 && (
+            <div>
+              {folders.length > 0 && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-medium text-neutral-400 ml-7">
+                    Unfiled
+                  </span>
+                  <span className="text-xs text-neutral-500">
+                    ({unfiledProjects.length})
+                  </span>
+                </div>
+              )}
+              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${folders.length > 0 ? "ml-7" : ""}`}>
+                {unfiledProjects.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    folders={folders}
+                    onRename={handleRename}
+                    onDelete={handleDelete}
+                    onDuplicate={handleDuplicate}
+                    onExport={handleExport}
+                    onMoveToFolder={handleMoveToFolder}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
