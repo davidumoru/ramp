@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { ProjectionCanvas } from "@/components/ProjectionCanvas";
 
 export default function Home() {
-  return <ProjectionCanvas />;
+  return (
+    <Suspense>
+      <ProjectionCanvas />
+    </Suspense>
+  );
 }
