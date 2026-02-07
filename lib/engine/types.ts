@@ -46,3 +46,30 @@ export interface SurfaceConfig {
   /** Number of subdivisions along each axis (default 32) */
   segments: number;
 }
+
+export interface SerializedPin {
+  id: string;
+  originX: number;
+  originY: number;
+  positionX: number;
+  positionY: number;
+}
+
+export interface SerializedSurface {
+  id: string;
+  corners: [
+    { x: number; y: number },
+    { x: number; y: number },
+    { x: number; y: number },
+    { x: number; y: number },
+  ];
+  segments: number;
+  bezierEnabled: boolean;
+  edgeMidpoints: [
+    { x: number; y: number } | null,
+    { x: number; y: number } | null,
+    { x: number; y: number } | null,
+    { x: number; y: number } | null,
+  ];
+  pins: SerializedPin[];
+}

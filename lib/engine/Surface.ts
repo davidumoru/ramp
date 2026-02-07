@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { SurfacePin } from "./types";
+import type { SurfacePin, SerializedSurface } from "./types";
 
 const HANDLE_SIZE = 0.035;
 const PIN_SIZE = 0.025;
@@ -500,6 +500,27 @@ export class Surface {
       mid.set(x, y, 0);
       this.updateGeometry();
     }
+  }
+
+  // --- Serialization ---
+
+  serialize(): SerializedSurface {
+    return {
+      id: this.id,
+      corners: this.corners.map((c) => ({ x: c.x, y: c.y })) as SerializedSurface["corners"],
+      segments: this.segments,
+      bezierEnabled: this.bezierEnabled,
+      edgeMidpoints: this.edgeMidpoints.map((m) =>
+        m ? { x: m.x, y: m.y } : null
+      ) as SerializedSurface["edgeMidpoints"],
+      pins: this.pins.map((p) => ({
+        id: p.id,
+        originX: p.origin.x,
+        originY: p.origin.y,
+        positionX: p.position.x,
+        positionY: p.position.y,
+      })),
+    };
   }
 
   // --- Clone ---

@@ -176,6 +176,16 @@ body {
   }
 }
 
+.toolbar-btn-success {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+}
+
+.toolbar-btn-error {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
 .toolbar-btn:active {
   transform: scale(0.97);
 }

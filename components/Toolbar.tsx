@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
@@ -12,6 +12,7 @@ import {
   GridViewIcon,
   RefreshIcon,
   FullScreenIcon,
+  FloppyDiskIcon,
 } from "@hugeicons/core-free-icons";
 import { AuthButton } from "./AuthButton";
 
@@ -24,8 +25,10 @@ interface ToolbarProps {
   onToggleWireframe: () => void;
   onToggleBezier: () => void;
   onSegmentsChange: (segments: number) => void;
+  onSave: () => Promise<boolean>;
   onReset: () => void;
   onFullscreen: () => void;
+  isLoggedIn: boolean;
   surfaceCount: number;
   hasSelection: boolean;
   handlesVisible: boolean;
@@ -43,8 +46,10 @@ export function Toolbar({
   onToggleWireframe,
   onToggleBezier,
   onSegmentsChange,
+  onSave,
   onReset,
   onFullscreen,
+  isLoggedIn,
   surfaceCount,
   hasSelection,
   handlesVisible,
@@ -53,6 +58,14 @@ export function Toolbar({
   selectedSegments,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  const handleSave = useCallback(async () => {
+    setSaveStatus("saving");
+    const ok = await onSave();
+    setSaveStatus(ok ? "saved" : "error");
+    setTimeout(() => setSaveStatus("idle"), 2000);
+  }, [onSave]);
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,6 +228,23 @@ export function Toolbar({
         <HugeiconsIcon icon={FullScreenIcon} size={16} strokeWidth={1.5} />
         Fullscreen
       </button>
+
+      {isLoggedIn && (
+        <>
+          <div className="toolbar-divider" aria-hidden="true" />
+
+          <button
+            className={`toolbar-btn ${saveStatus === "saved" ? "toolbar-btn-success" : saveStatus === "error" ? "toolbar-btn-error" : ""}`}
+            onClick={handleSave}
+            disabled={surfaceCount === 0 || saveStatus === "saving"}
+            aria-label="Save project"
+            title="Save current configuration"
+          >
+            <HugeiconsIcon icon={FloppyDiskIcon} size={16} strokeWidth={1.5} />
+            {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved!" : saveStatus === "error" ? "Failed" : "Save"}
+          </button>
+        </>
+      )}
 
       <div className="toolbar-divider" aria-hidden="true" />
 

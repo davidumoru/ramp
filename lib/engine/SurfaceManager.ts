@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Surface } from "./Surface";
-import type { SurfacePin } from "./types";
+import type { SurfacePin, SerializedSurface } from "./types";
 import type { SceneManager } from "./SceneManager";
 
 type DragTarget =
@@ -130,6 +130,12 @@ export class SurfaceManager {
     for (const surface of this.surfaces) {
       surface.setWireframe(enabled);
     }
+  }
+
+  // --- Serialization ---
+
+  serialize(): SerializedSurface[] {
+    return this.surfaces.map((s) => s.serialize());
   }
 
   // --- Segments ---

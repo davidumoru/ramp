@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SceneManager } from "@/lib/engine/SceneManager";
 import { SurfaceManager } from "@/lib/engine/SurfaceManager";
 import { Toolbar } from "./Toolbar";
+import { authClient } from "@/lib/auth-client";
 
 export function ProjectionCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -17,6 +18,7 @@ export function ProjectionCanvas() {
   const [wireframe, setWireframe] = useState(false);
   const [selectedSegments, setSelectedSegments] = useState(32);
   const [bezierEnabled, setBezierEnabled] = useState(false);
+  const { data: session } = authClient.useSession();
 
   // Initialize Three.js engine
   useEffect(() => {
@@ -117,6 +119,30 @@ export function ProjectionCanvas() {
     setBezierEnabled(false);
   }, []);
 
+  const handleSave = useCallback(async (): Promise<boolean> => {
+    const data = surfaceManagerRef.current?.serialize();
+    if (!data) return false;
+
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        console.error("Failed to save project:", res.status, err);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error("Failed to save project:", err);
+      return false;
+    }
+  }, []);
+
   const handleFullscreen = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -140,8 +166,10 @@ export function ProjectionCanvas() {
         onToggleWireframe={handleToggleWireframe}
         onToggleBezier={handleToggleBezier}
         onSegmentsChange={handleSegmentsChange}
+        onSave={handleSave}
         onReset={handleReset}
         onFullscreen={handleFullscreen}
+        isLoggedIn={!!session?.user}
         surfaceCount={surfaceCount}
         hasSelection={selectedSurfaceId !== null}
         handlesVisible={handlesVisible}
