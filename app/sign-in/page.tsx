@@ -9,10 +9,24 @@ import { Layers01Icon } from "@hugeicons/core-free-icons";
 
 export default function SignIn() {
   const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  if (isPending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-700 border-t-white" />
+      </div>
+    );
+  }
+
+  if (session?.user) {
+    router.push("/");
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
