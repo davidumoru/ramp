@@ -21,10 +21,8 @@ export class Surface {
   readonly mesh: THREE.Mesh;
   readonly edgeLines: THREE.LineSegments;
 
-  // Pins
   pins: SurfacePin[] = [];
 
-  // Bezier edge midpoints: top, right, bottom, left
   edgeMidpoints: [THREE.Vector3 | null, THREE.Vector3 | null, THREE.Vector3 | null, THREE.Vector3 | null] = [null, null, null, null];
   edgeMidHandles: [THREE.Mesh | null, THREE.Mesh | null, THREE.Mesh | null, THREE.Mesh | null] = [null, null, null, null];
   private bezierEnabled = false;
@@ -83,7 +81,6 @@ export class Surface {
       new THREE.Vector3(centerX - hw, centerY - hh, 0),
     ];
 
-    // Create geometry with standard UVs
     this.geometry = new THREE.PlaneGeometry(1, 1, segments, segments);
     this.material = new THREE.MeshBasicMaterial({
       color: 0x333333,
@@ -92,7 +89,6 @@ export class Surface {
     });
     this.mesh = new THREE.Mesh(this.geometry, this.material);
 
-    // Create corner handles
     const handleGeo = Surface.getHandleGeometry();
     const makeHandle = (corner: THREE.Vector3): THREE.Mesh => {
       const mat = new THREE.MeshBasicMaterial({
@@ -112,7 +108,6 @@ export class Surface {
       makeHandle(this.corners[3]),
     ];
 
-    // Create edge lines
     this.edgeGeometry = new THREE.BufferGeometry();
     this.edgeMaterial = new THREE.LineBasicMaterial({
       color: EDGE_COLOR,
@@ -193,7 +188,6 @@ export class Surface {
         x = (1 - v) * bottomPt.x + v * topPt.x + (1 - u) * leftPt.x + u * rightPt.x - bilinX;
         y = (1 - v) * bottomPt.y + v * topPt.y + (1 - u) * leftPt.y + u * rightPt.y - bilinY;
       } else {
-        // Bilinear interpolation
         x =
           (1 - u) * v * tl.x +
           u * v * tr.x +
@@ -247,12 +241,10 @@ export class Surface {
     posAttr.needsUpdate = true;
     this.geometry.computeBoundingSphere();
 
-    // Update corner handles
     for (let i = 0; i < 4; i++) {
       this.handles[i].position.set(this.corners[i].x, this.corners[i].y, 0.02);
     }
 
-    // Update edge midpoint handles
     for (let i = 0; i < 4; i++) {
       const mid = this.edgeMidpoints[i];
       const handle = this.edgeMidHandles[i];
@@ -261,7 +253,6 @@ export class Surface {
       }
     }
 
-    // Update edge lines (sample curved edges)
     this.updateEdgeLines();
   }
 
@@ -269,7 +260,6 @@ export class Surface {
     const n = EDGE_SAMPLE_COUNT;
 
     if (!this.bezierEnabled) {
-      // Simple 4-edge line segments
       const [tl, tr, br, bl] = this.corners;
       const edgeVerts = new Float32Array([
         tl.x, tl.y, 0.01, tr.x, tr.y, 0.01,
@@ -438,10 +428,7 @@ export class Surface {
   rebuild(newSegments: number): void {
     this.segments = newSegments;
 
-    // Dispose old geometry
     this.geometry.dispose();
-
-    // Create new geometry
     this.geometry = new THREE.PlaneGeometry(1, 1, newSegments, newSegments);
     this.mesh.geometry = this.geometry;
 
@@ -458,7 +445,6 @@ export class Surface {
     this.bezierEnabled = enabled;
 
     if (enabled && !this.edgeMidHandles[0]) {
-      // First time: create midpoint handles at edge centers
       const [tl, tr, br, bl] = this.corners;
       const edgeCenters = [
         new THREE.Vector3().lerpVectors(tl, tr, 0.5), // top
@@ -486,7 +472,6 @@ export class Surface {
       }
     }
 
-    // Show/hide midpoint handles based on enabled state
     for (const handle of this.edgeMidHandles) {
       if (handle) handle.visible = enabled;
     }
@@ -507,12 +492,10 @@ export class Surface {
   static fromSerialized(data: SerializedSurface): Surface {
     const s = new Surface(0, 0, 1, 0.75, data.segments);
 
-    // Restore corners
     for (let i = 0; i < 4; i++) {
       s.corners[i].set(data.corners[i].x, data.corners[i].y, 0);
     }
 
-    // Restore bezier state
     if (data.bezierEnabled) {
       s.setBezierEnabled(true);
       for (let i = 0; i < 4; i++) {
@@ -523,7 +506,6 @@ export class Surface {
       }
     }
 
-    // Restore pins
     for (const p of data.pins) {
       const pin = s.addPin(new THREE.Vector3(p.originX, p.originY, 0));
       pin.position.set(p.positionX, p.positionY, 0);
@@ -561,12 +543,10 @@ export class Surface {
     const offset = 0.05;
     const s = new Surface(0, 0, 1, 0.75, this.segments);
 
-    // Copy corners with offset
     for (let i = 0; i < 4; i++) {
       s.corners[i].set(this.corners[i].x + offset, this.corners[i].y + offset, 0);
     }
 
-    // Share texture reference (not cloned)
     if (this.material.map) {
       s.material.map = this.material.map;
       s.material.wireframe = this.material.wireframe;
@@ -574,7 +554,6 @@ export class Surface {
       s.material.needsUpdate = true;
     }
 
-    // Copy bezier state
     if (this.bezierEnabled) {
       s.scene = scene;
       s.setBezierEnabled(true);

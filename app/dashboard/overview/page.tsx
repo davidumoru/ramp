@@ -84,10 +84,8 @@ export default function Overview() {
 
   return (
     <div className="flex flex-col gap-y-12">
-      {/* Page title */}
       <h1 className="text-2xl font-medium text-white whitespace-nowrap">Overview</h1>
 
-      {/* Stats Cards */}
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-lg font-medium text-white">Stats</h2>
@@ -115,7 +113,6 @@ export default function Overview() {
         </div>
       </div>
 
-      {/* Recent Activity */}
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-lg font-medium text-white">Recent Activity</h2>

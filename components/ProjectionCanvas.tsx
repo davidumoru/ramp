@@ -42,7 +42,6 @@ export function ProjectionCanvas() {
   const projectIdRef = useRef<string | null>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Initialize Three.js engine
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -67,7 +66,6 @@ export function ProjectionCanvas() {
     sceneRef.current = scene;
     surfaceManagerRef.current = surfaceManager;
 
-    // Resize handler
     const onResize = () => {
       const { width: w, height: h } = container.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio, 2);
@@ -89,7 +87,6 @@ export function ProjectionCanvas() {
     };
   }, []);
 
-  // Load preferences on mount
   useEffect(() => {
     fetch("/api/preferences")
       .then(async (res) => {
@@ -102,7 +99,6 @@ export function ProjectionCanvas() {
           autoSave: data.autoSave ?? false,
           autoSaveInterval: data.autoSaveInterval ?? 30,
         };
-        // Apply defaults to initial state
         setSelectedSegments(prefsRef.current.defaultSegments);
         setWireframe(prefsRef.current.defaultWireframe);
         setBezierEnabled(prefsRef.current.defaultBezier);
@@ -110,7 +106,6 @@ export function ProjectionCanvas() {
       .catch(() => {});
   }, []);
 
-  // Load project from query param
   useEffect(() => {
     const projectId = searchParams.get("project");
     projectIdRef.current = projectId;
@@ -128,9 +123,7 @@ export function ProjectionCanvas() {
       .catch((err) => console.error("Failed to load project:", err));
   }, [searchParams]);
 
-  // Auto-save effect
   useEffect(() => {
-    // Clear any existing timer
     if (autoSaveTimerRef.current) {
       clearInterval(autoSaveTimerRef.current);
       autoSaveTimerRef.current = null;
@@ -146,7 +139,6 @@ export function ProjectionCanvas() {
       if (!data || data.length === 0) return;
 
       try {
-        // Hide handles for clean snapshot
         const wereVisible =
           surfaceManagerRef.current !== null;
         surfaceManagerRef.current?.setHandlesVisibleAll(false);
@@ -160,8 +152,7 @@ export function ProjectionCanvas() {
           body: JSON.stringify({ data, thumbnail }),
         });
       } catch {
-        // silently fail auto-save
-      }
+        }
     }, prefs.autoSaveInterval * 1000);
 
     return () => {
@@ -239,12 +230,10 @@ export function ProjectionCanvas() {
         surfaceManagerRef.current?.setHandlesVisibleAll(false);
       }
 
-      // Wait one frame for the render to update
       await new Promise((r) => requestAnimationFrame(r));
 
       const thumbnail = sceneRef.current?.captureSnapshot() ?? undefined;
 
-      // Restore handles
       if (wereVisible) {
         surfaceManagerRef.current?.setHandlesVisibleAll(true);
       }
@@ -252,7 +241,6 @@ export function ProjectionCanvas() {
       const projectId = projectIdRef.current;
 
       if (projectId) {
-        // Update existing project
         const res = await fetch(`/api/projects/${projectId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -265,7 +253,6 @@ export function ProjectionCanvas() {
           return false;
         }
       } else {
-        // Create new project
         const res = await fetch("/api/projects", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

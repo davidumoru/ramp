@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 
-/* ── Consistent design tokens ── */
 const inputClass =
   "h-9 w-full rounded-md border border-neutral-700 bg-neutral-800/30 px-3 py-1 text-sm text-white outline-none transition-[color,box-shadow] placeholder:text-neutral-600 focus-visible:border-neutral-500 focus-visible:ring-[3px] focus-visible:ring-neutral-500/20 disabled:pointer-events-none disabled:opacity-50";
 
@@ -19,14 +18,12 @@ const btnDestructive =
 export default function Settings() {
   const { data: session } = authClient.useSession();
 
-  // Name editing
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [nameSaving, setNameSaving] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Avatar (Google users only)
   const [googleImage, setGoogleImage] = useState<string | null>(null);
   const [avatarSaving, setAvatarSaving] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
@@ -41,14 +38,12 @@ export default function Settings() {
       .catch(() => {});
   }, []);
 
-  // Change password
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Delete account
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -143,17 +138,14 @@ export default function Settings() {
 
   return (
     <div className="flex flex-col gap-y-12">
-      {/* Page title */}
       <h1 className="text-2xl font-medium text-white whitespace-nowrap">Settings</h1>
 
-      {/* Section: Profile */}
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-lg font-medium text-white">Profile</h2>
           <p className="text-sm text-neutral-500">Manage your profile information</p>
         </div>
         <div className="rounded-2xl border border-neutral-800 bg-neutral-900 divide-y divide-neutral-800">
-          {/* Name */}
           <div className="px-6 py-5">
             <div className="flex items-center gap-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -207,7 +199,6 @@ export default function Settings() {
               </div>
             </div>
           </div>
-          {/* Email */}
           <div className="px-6 py-5">
             <p className="text-sm font-medium text-neutral-500">Email</p>
             <p className="mt-1 text-sm text-white">{user.email}</p>
@@ -215,7 +206,6 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Section: Avatar (Google users only) */}
       {googleImage && (
         <div className="flex flex-col gap-4">
           <div>
@@ -267,7 +257,6 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Section: Security */}
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-lg font-medium text-white">Security</h2>
@@ -315,7 +304,6 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* Section: Danger Zone */}
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-lg font-medium text-red-400">Danger Zone</h2>

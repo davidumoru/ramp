@@ -17,7 +17,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 
-/* ── Consistent design tokens ── */
 const inputClass =
   "h-9 w-full rounded-md border border-neutral-700 bg-neutral-800/30 px-3 py-1 text-sm text-white outline-none transition-[color,box-shadow] placeholder:text-neutral-600 focus-visible:border-neutral-500 focus-visible:ring-[3px] focus-visible:ring-neutral-500/20 disabled:pointer-events-none disabled:opacity-50";
 
@@ -209,7 +208,6 @@ function ProjectCard({
             >
               <HugeiconsIcon icon={Download01Icon} size={15} strokeWidth={1.5} />
             </button>
-            {/* Move to folder */}
             <div className="relative" ref={folderMenuRef}>
               <button
                 onClick={() => setShowFolderMenu(!showFolderMenu)}
@@ -316,7 +314,6 @@ export default function Projects() {
         setProjects((prev) => prev.filter((p) => p.id !== id));
       }
     } catch {
-      // silently fail
     }
   }, []);
 
@@ -367,7 +364,6 @@ export default function Projects() {
         ...prev,
       ]);
     } catch {
-      // silently fail
     }
   }, []);
 
@@ -392,7 +388,6 @@ export default function Projects() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch {
-      // silently fail
     }
   }, []);
 
@@ -468,8 +463,7 @@ export default function Projects() {
           );
         }
       } catch {
-        // silently fail
-      }
+        }
     },
     []
   );
@@ -496,7 +490,6 @@ export default function Projects() {
       setEditingFolderId(data.id);
       setFolderDraft(data.name);
     } catch {
-      // silently fail
     }
   }, []);
 
@@ -535,7 +528,6 @@ export default function Projects() {
         if (filter === id) setFilter("all");
       }
     } catch {
-      // silently fail
     }
   }, [filter]);
 
@@ -558,7 +550,6 @@ export default function Projects() {
       ? projects.filter((p) => !p.folderId)
       : projects.filter((p) => p.folderId === filter);
 
-  // Group projects by folder for display
   const unfiledProjects = projects.filter((p) => !p.folderId);
   const projectsByFolder = folders.map((f) => ({
     folder: f,
@@ -584,7 +575,6 @@ export default function Projects() {
 
   return (
     <div className="flex flex-col gap-y-12">
-      {/* Page title + actions */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-medium text-white whitespace-nowrap">Projects</h1>
@@ -615,7 +605,6 @@ export default function Projects() {
         </div>
       </div>
 
-      {/* Filter bar */}
       {folders.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           <button
@@ -668,7 +657,6 @@ export default function Projects() {
           </p>
         </div>
       ) : filter !== "all" ? (
-        /* Flat filtered view */
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredProjects.map((project) => (
             <ProjectCard
@@ -689,9 +677,7 @@ export default function Projects() {
           )}
         </div>
       ) : (
-        /* Grouped view */
         <div className="flex flex-col gap-8">
-          {/* Folder groups */}
           {projectsByFolder.map(({ folder: f, projects: folderProjects }) => (
             <div key={f.id}>
               <div className="mb-4 flex items-center gap-2">
@@ -734,7 +720,7 @@ export default function Projects() {
                       }
                       setEditingFolderId(null);
                     }}
-                    className={inputClass + " max-w-[200px]"}
+                    className={inputClass + " max-w-50"}
                   />
                 ) : (
                   <span
@@ -793,7 +779,6 @@ export default function Projects() {
             </div>
           ))}
 
-          {/* Unfiled projects */}
           {unfiledProjects.length > 0 && (
             <div>
               {folders.length > 0 && (

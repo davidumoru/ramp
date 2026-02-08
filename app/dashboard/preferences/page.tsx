@@ -79,10 +79,8 @@ export default function PreferencesPage() {
 
   return (
     <div className="flex flex-col gap-y-12">
-      {/* Page title */}
       <h1 className="text-2xl font-medium text-white whitespace-nowrap">Editor Preferences</h1>
 
-      {/* Preferences form */}
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-lg font-medium text-white">Defaults</h2>
@@ -92,7 +90,6 @@ export default function PreferencesPage() {
         </div>
 
         <div className="rounded-2xl border border-neutral-800 bg-neutral-900 divide-y divide-neutral-800">
-          {/* Default Segments */}
           <div className="flex items-center justify-between px-6 py-5">
             <div>
               <p className="text-sm font-medium text-white">Default Segments</p>
@@ -116,7 +113,6 @@ export default function PreferencesPage() {
             />
           </div>
 
-          {/* Default Wireframe */}
           <div className="flex items-center justify-between px-6 py-5">
             <div>
               <p className="text-sm font-medium text-white">Default Wireframe</p>
@@ -130,7 +126,6 @@ export default function PreferencesPage() {
             />
           </div>
 
-          {/* Default Bezier */}
           <div className="flex items-center justify-between px-6 py-5">
             <div>
               <p className="text-sm font-medium text-white">Default Bezier</p>
@@ -144,7 +139,6 @@ export default function PreferencesPage() {
             />
           </div>
 
-          {/* Auto-Save */}
           <div className="flex items-center justify-between px-6 py-5">
             <div>
               <p className="text-sm font-medium text-white">Auto-Save</p>
@@ -158,7 +152,6 @@ export default function PreferencesPage() {
             />
           </div>
 
-          {/* Auto-Save Interval */}
           {prefs.autoSave && (
             <div className="flex items-center justify-between px-6 py-5">
               <div>
@@ -190,7 +183,6 @@ export default function PreferencesPage() {
         </div>
       </div>
 
-      {/* Save Button */}
       <div className="flex items-center gap-3">
         <button
           onClick={handleSave}

@@ -14,13 +14,13 @@ import {
 } from "@hugeicons/core-free-icons";
 
 const navLinks = [
-  { label: "Overview", href: "/profile/overview", icon: DashboardSquare01Icon },
-  { label: "Projects", href: "/profile/projects", icon: Folder01Icon },
-  { label: "Preferences", href: "/profile/preferences", icon: PaintBrush01Icon },
-  { label: "Settings", href: "/profile/settings", icon: Settings01Icon },
+  { label: "Overview", href: "/dashboard/overview", icon: DashboardSquare01Icon },
+  { label: "Projects", href: "/dashboard/projects", icon: Folder01Icon },
+  { label: "Preferences", href: "/dashboard/preferences", icon: PaintBrush01Icon },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings01Icon },
 ];
 
-export default function ProfileLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -66,10 +66,8 @@ export default function ProfileLayout({
 
   return (
     <div className="relative flex h-screen w-full flex-col bg-neutral-950 md:flex-row md:p-2">
-      {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-60 shrink-0 flex-col bg-neutral-950">
-        {/* Sidebar Header */}
-        <div className="flex flex-col gap-3 px-4 py-4">
+        <div className="flex flex-col gap-6 px-4 py-4">
           <Link
             href="/"
             className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-white"
@@ -88,7 +86,6 @@ export default function ProfileLayout({
           </Link>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 px-2 py-2">
           <ul className="space-y-1">
             {navLinks.map((link) => {
@@ -99,8 +96,8 @@ export default function ProfileLayout({
                     href={link.href}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                       isActive
-                        ? "border border-neutral-800 bg-neutral-900 text-white shadow-xs"
-                        : "border border-transparent text-neutral-500 hover:text-neutral-200"
+                        ? "bg-neutral-900 text-white"
+                        : "text-neutral-500 hover:text-neutral-200"
                     }`}
                   >
                     <HugeiconsIcon
@@ -116,7 +113,6 @@ export default function ProfileLayout({
           </ul>
         </nav>
 
-        {/* Sidebar Footer */}
         <div className="border-t border-neutral-800 px-4 py-4 space-y-3">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -141,7 +137,6 @@ export default function ProfileLayout({
         </div>
       </aside>
 
-      {/* Mobile Header */}
       <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-neutral-800 bg-neutral-950/90 px-4 py-3 backdrop-blur-sm md:hidden">
         <Link
           href="/"
@@ -179,7 +174,6 @@ export default function ProfileLayout({
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-30 md:hidden">
           <div
@@ -207,8 +201,8 @@ export default function ProfileLayout({
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                       isActive
-                        ? "border border-neutral-800 bg-neutral-900 text-white shadow-xs"
-                        : "border border-transparent text-neutral-500 hover:text-neutral-200"
+                        ? "bg-neutral-900 text-white"
+                        : "text-neutral-500 hover:text-neutral-200"
                     }`}
                   >
                     <HugeiconsIcon
@@ -249,7 +243,6 @@ export default function ProfileLayout({
         </div>
       )}
 
-      {/* Content Panel — matches Polar DashboardBody */}
       <main className="flex-1 min-h-0 pt-13.25 md:pt-0">
         <div className="relative h-full min-w-0 overflow-y-auto rounded-none border-neutral-800 bg-neutral-950 px-4 md:rounded-2xl md:border md:bg-neutral-900 md:px-8 md:shadow-xs">
           <div className="mx-auto flex w-full flex-col gap-8 pt-12 pb-16 max-w-5xl">

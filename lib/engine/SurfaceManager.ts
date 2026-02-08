@@ -224,7 +224,6 @@ export class SurfaceManager {
     let closest: { target: DragTarget; dist: number } | null = null;
 
     for (const surface of this.surfaces) {
-      // Corner handles
       for (let i = 0; i < 4; i++) {
         const handle = surface.handles[i];
         if (!handle.visible) continue;
@@ -237,7 +236,6 @@ export class SurfaceManager {
         }
       }
 
-      // Pin handles
       for (const pin of surface.pins) {
         if (!pin.handle.visible) continue;
         const hits = this.raycaster.intersectObject(pin.handle);
@@ -249,7 +247,6 @@ export class SurfaceManager {
         }
       }
 
-      // Midpoint handles
       for (let i = 0; i < 4; i++) {
         const handle = surface.edgeMidHandles[i];
         if (!handle || !handle.visible) continue;
@@ -325,7 +322,6 @@ export class SurfaceManager {
       return;
     }
 
-    // Check surface meshes for selection
     const surfaceHit = this.hitTestSurfaceMesh(e);
     if (surfaceHit) {
       this.selectSurface(surfaceHit);
@@ -360,7 +356,6 @@ export class SurfaceManager {
   }
 
   private onDblClick(e: MouseEvent): void {
-    // Place pin on selected surface at click point
     if (!this.selectedSurface) return;
 
     this.updateMouse(e);
@@ -373,7 +368,6 @@ export class SurfaceManager {
   }
 
   private onContextMenu(e: MouseEvent): void {
-    // Right-click removes pin
     e.preventDefault();
 
     this.updateMouse(e);

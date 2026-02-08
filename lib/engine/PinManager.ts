@@ -144,7 +144,6 @@ export class PinManager {
   }
 
   private onDblClick(e: MouseEvent): void {
-    // Don't place a pin if we hit an existing one
     if (this.hitTestPins(e)) return;
 
     const worldPos = this.hitTestMesh(e);
@@ -154,7 +153,7 @@ export class PinManager {
   }
 
   private onPointerDown(e: PointerEvent): void {
-    if (e.button !== 0) return; // left click only
+    if (e.button !== 0) return;
 
     const pin = this.hitTestPins(e);
     if (!pin) return;
@@ -164,7 +163,6 @@ export class PinManager {
       PIN_COLOR_ACTIVE
     );
 
-    // Calculate offset so pin doesn't snap to cursor center
     this.updateMouse(e);
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);

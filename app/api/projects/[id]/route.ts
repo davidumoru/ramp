@@ -74,7 +74,6 @@ export async function PATCH(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // Log activity
   const nameForLog =
     (updates.name as string) ??
     (

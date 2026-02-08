@@ -28,7 +28,7 @@ export function AuthButton() {
   }
 
   return (
-    <Link href="/profile" className="flex shrink-0 items-center">
+    <Link href="/dashboard" className="flex shrink-0 items-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={session.user.image || `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(session.user.email)}`}
