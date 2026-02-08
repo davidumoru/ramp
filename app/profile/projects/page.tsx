@@ -17,6 +17,16 @@ import {
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 
+/* ── Consistent design tokens ── */
+const inputClass =
+  "h-9 w-full rounded-md border border-neutral-700 bg-neutral-800/30 px-3 py-1 text-sm text-white outline-none transition-[color,box-shadow] placeholder:text-neutral-600 focus-visible:border-neutral-500 focus-visible:ring-[3px] focus-visible:ring-neutral-500/20 disabled:pointer-events-none disabled:opacity-50";
+
+const btnOutline =
+  "inline-flex h-9 items-center gap-2 rounded-md border border-neutral-700 bg-transparent px-4 text-sm font-medium text-neutral-300 transition-all hover:bg-neutral-800 disabled:pointer-events-none disabled:opacity-50";
+
+const iconBtn =
+  "inline-flex size-8 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300 disabled:pointer-events-none disabled:opacity-50";
+
 interface Project {
   id: string;
   name: string;
@@ -104,9 +114,9 @@ function ProjectCard({
   };
 
   return (
-    <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden transition-colors hover:border-neutral-700">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-900 overflow-hidden transition-colors hover:border-neutral-700">
       {project.thumbnail && (
-        <div className="border-b border-neutral-800/40">
+        <div className="border-b border-neutral-800">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={project.thumbnail}
@@ -116,7 +126,7 @@ function ProjectCard({
           />
         </div>
       )}
-      <div className="p-4">
+      <div className="px-5 py-4">
         <div className="flex items-center gap-2">
           {editing ? (
             <>
@@ -127,12 +137,12 @@ function ProjectCard({
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={saving}
-                className="flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm font-medium text-white outline-none focus:border-neutral-500"
+                className={inputClass + " max-w-xs"}
               />
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-green-400"
+                className={iconBtn + " hover:text-green-400"}
                 title="Save name"
               >
                 <HugeiconsIcon icon={Tick01Icon} size={16} strokeWidth={1.5} />
@@ -140,7 +150,7 @@ function ProjectCard({
               <button
                 onClick={handleCancel}
                 disabled={saving}
-                className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-red-400"
+                className={iconBtn + " hover:text-red-400"}
                 title="Cancel"
               >
                 <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={1.5} />
@@ -148,10 +158,10 @@ function ProjectCard({
             </>
           ) : (
             <>
-              <h2 className="flex-1 truncate text-sm font-medium text-white">{project.name}</h2>
+              <h3 className="flex-1 truncate text-sm font-medium text-white">{project.name}</h3>
               <Link
                 href={`/?project=${project.id}`}
-                className="rounded-md p-1.5 text-neutral-600 transition-colors hover:bg-neutral-800 hover:text-white"
+                className={iconBtn + " hover:text-white"}
                 title="Open in editor"
               >
                 <HugeiconsIcon icon={ArrowRight01Icon} size={16} strokeWidth={1.5} />
@@ -167,10 +177,10 @@ function ProjectCard({
           })}
         </p>
         {!editing && (
-          <div className="mt-3 flex items-center gap-1 border-t border-neutral-800/60 pt-3">
+          <div className="mt-3 flex items-center gap-0.5 border-t border-neutral-800 pt-3">
             <button
               onClick={() => setEditing(true)}
-              className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
+              className={iconBtn}
               title="Rename project"
             >
               <HugeiconsIcon icon={PencilEdit01Icon} size={15} strokeWidth={1.5} />
@@ -182,7 +192,7 @@ function ProjectCard({
                 setDuplicating(false);
               }}
               disabled={duplicating}
-              className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300 disabled:opacity-50"
+              className={iconBtn}
               title="Duplicate project"
             >
               <HugeiconsIcon icon={Copy01Icon} size={15} strokeWidth={1.5} />
@@ -194,7 +204,7 @@ function ProjectCard({
                 setExporting(false);
               }}
               disabled={exporting}
-              className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300 disabled:opacity-50"
+              className={iconBtn}
               title="Export project"
             >
               <HugeiconsIcon icon={Download01Icon} size={15} strokeWidth={1.5} />
@@ -203,19 +213,19 @@ function ProjectCard({
             <div className="relative" ref={folderMenuRef}>
               <button
                 onClick={() => setShowFolderMenu(!showFolderMenu)}
-                className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
+                className={iconBtn}
                 title="Move to folder"
               >
                 <HugeiconsIcon icon={Folder01Icon} size={15} strokeWidth={1.5} />
               </button>
               {showFolderMenu && (
-                <div className="absolute bottom-full left-0 z-10 mb-1 w-44 rounded-lg border border-neutral-700 bg-neutral-800 py-1 shadow-lg">
+                <div className="absolute bottom-full left-0 z-10 mb-1 w-44 rounded-xl border border-neutral-800 bg-neutral-900 py-1 shadow-lg">
                   <button
                     onClick={() => {
                       onMoveToFolder(project.id, null);
                       setShowFolderMenu(false);
                     }}
-                    className={`w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-neutral-700 ${
+                    className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-neutral-800 ${
                       !project.folderId ? "text-[#e54d2e]" : "text-neutral-300"
                     }`}
                   >
@@ -228,7 +238,7 @@ function ProjectCard({
                         onMoveToFolder(project.id, f.id);
                         setShowFolderMenu(false);
                       }}
-                      className={`w-full px-3 py-1.5 text-left text-xs transition-colors hover:bg-neutral-700 ${
+                      className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors hover:bg-neutral-800 ${
                         project.folderId === f.id ? "text-[#e54d2e]" : "text-neutral-300"
                       }`}
                     >
@@ -244,7 +254,7 @@ function ProjectCard({
                 await onDelete(project.id);
               }}
               disabled={deleting}
-              className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-red-400"
+              className={iconBtn + " hover:text-red-400"}
               title="Delete project"
             >
               <HugeiconsIcon icon={Delete01Icon} size={15} strokeWidth={1.5} />
@@ -519,7 +529,6 @@ export default function Projects() {
       });
       if (res.ok) {
         setFolders((prev) => prev.filter((f) => f.id !== id));
-        // Projects in deleted folder become unfiled
         setProjects((prev) =>
           prev.map((p) => (p.folderId === id ? { ...p, folderId: null } : p))
         );
@@ -559,7 +568,7 @@ export default function Projects() {
   if (loading) {
     return (
       <div className="flex items-center gap-3 py-16 justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-700 border-t-white" />
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-800 border-t-white" />
         <span className="text-sm text-neutral-500">Loading projects...</span>
       </div>
     );
@@ -567,69 +576,64 @@ export default function Projects() {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-5 text-center">
+      <div className="rounded-2xl border border-red-900/40 bg-red-950/10 px-6 py-5 text-center">
         <p className="text-sm text-red-400">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Section header */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-lg font-medium text-white">Projects</h2>
-            <p className="text-sm text-neutral-500">
-              {projects.length} saved project{projects.length !== 1 ? "s" : ""}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCreateFolder}
-              className="flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
-            >
-              <HugeiconsIcon icon={FolderAddIcon} size={16} strokeWidth={1.5} />
-              New Folder
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              className="hidden"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={importing}
-              className="flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-700 disabled:opacity-50"
-            >
-              <HugeiconsIcon icon={Upload01Icon} size={16} strokeWidth={1.5} />
-              {importing ? "Importing..." : "Import"}
-            </button>
-          </div>
+    <div className="flex flex-col gap-y-12">
+      {/* Page title + actions */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-medium text-white whitespace-nowrap">Projects</h1>
+          <p className="mt-1 text-sm text-neutral-500">
+            {projects.length} saved project{projects.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={handleCreateFolder} className={btnOutline}>
+            <HugeiconsIcon icon={FolderAddIcon} size={16} strokeWidth={1.5} />
+            New Folder
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleImport}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className={btnOutline}
+          >
+            <HugeiconsIcon icon={Upload01Icon} size={16} strokeWidth={1.5} />
+            {importing ? "Importing..." : "Import"}
+          </button>
         </div>
       </div>
 
       {/* Filter bar */}
       {folders.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => setFilter("all")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
               filter === "all"
-                ? "bg-neutral-700 text-white"
-                : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+                ? "bg-neutral-800 text-white"
+                : "text-neutral-500 hover:bg-neutral-800/50 hover:text-neutral-300"
             }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter("unfiled")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
               filter === "unfiled"
-                ? "bg-neutral-700 text-white"
-                : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+                ? "bg-neutral-800 text-white"
+                : "text-neutral-500 hover:bg-neutral-800/50 hover:text-neutral-300"
             }`}
           >
             Unfiled
@@ -638,10 +642,10 @@ export default function Projects() {
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
                 filter === f.id
-                  ? "bg-neutral-700 text-white"
-                  : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+                  ? "bg-neutral-800 text-white"
+                  : "text-neutral-500 hover:bg-neutral-800/50 hover:text-neutral-300"
               }`}
             >
               {f.name}
@@ -651,21 +655,21 @@ export default function Projects() {
       )}
 
       {importError && (
-        <div className="rounded-xl border border-red-900/40 bg-red-950/20 p-4">
+        <div className="rounded-2xl border border-red-900/40 bg-red-950/10 px-6 py-5">
           <p className="text-sm text-red-400">{importError}</p>
         </div>
       )}
 
       {projects.length === 0 ? (
-        <div className="py-16 text-center">
-          <p className="text-sm text-neutral-400">No saved projects yet.</p>
-          <p className="mt-1 text-xs text-neutral-600">
+        <div className="rounded-2xl border border-neutral-800 p-24 text-center">
+          <p className="text-lg font-medium text-neutral-400">No saved projects yet</p>
+          <p className="mt-1 text-sm text-neutral-600">
             Add surfaces in the editor and click Save to create your first project.
           </p>
         </div>
       ) : filter !== "all" ? (
         /* Flat filtered view */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredProjects.map((project) => (
             <ProjectCard
               key={project.id}
@@ -679,21 +683,21 @@ export default function Projects() {
             />
           ))}
           {filteredProjects.length === 0 && (
-            <div className="col-span-full py-8 text-center">
+            <div className="col-span-full rounded-2xl border border-neutral-800 p-16 text-center">
               <p className="text-sm text-neutral-500">No projects in this view.</p>
             </div>
           )}
         </div>
       ) : (
         /* Grouped view */
-        <div className="space-y-6">
+        <div className="flex flex-col gap-8">
           {/* Folder groups */}
           {projectsByFolder.map(({ folder: f, projects: folderProjects }) => (
             <div key={f.id}>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="mb-4 flex items-center gap-2">
                 <button
                   onClick={() => toggleFolderCollapse(f.id)}
-                  className="rounded-md p-1 text-neutral-400 hover:text-white transition-colors"
+                  className={iconBtn}
                 >
                   <HugeiconsIcon
                     icon={collapsedFolders.has(f.id) ? ArrowRight01Icon : ArrowDown01Icon}
@@ -730,7 +734,7 @@ export default function Projects() {
                       }
                       setEditingFolderId(null);
                     }}
-                    className="rounded-md border border-neutral-700 bg-neutral-800 px-2 py-0.5 text-sm font-medium text-white outline-none focus:border-neutral-500"
+                    className={inputClass + " max-w-[200px]"}
                   />
                 ) : (
                   <span
@@ -751,21 +755,21 @@ export default function Projects() {
                     setEditingFolderId(f.id);
                     setFolderDraft(f.name);
                   }}
-                  className="rounded-md p-1 text-neutral-600 hover:text-neutral-300 transition-colors"
+                  className={iconBtn + " size-7"}
                   title="Rename folder"
                 >
                   <HugeiconsIcon icon={PencilEdit01Icon} size={13} strokeWidth={1.5} />
                 </button>
                 <button
                   onClick={() => handleDeleteFolder(f.id)}
-                  className="rounded-md p-1 text-neutral-600 hover:text-red-400 transition-colors"
+                  className={iconBtn + " size-7 hover:text-red-400"}
                   title="Delete folder"
                 >
                   <HugeiconsIcon icon={Delete01Icon} size={13} strokeWidth={1.5} />
                 </button>
               </div>
               {!collapsedFolders.has(f.id) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ml-7">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 ml-8">
                   {folderProjects.length === 0 ? (
                     <p className="text-xs text-neutral-600 col-span-full py-2">
                       No projects in this folder.
@@ -793,8 +797,8 @@ export default function Projects() {
           {unfiledProjects.length > 0 && (
             <div>
               {folders.length > 0 && (
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm font-medium text-neutral-400 ml-7">
+                <div className="mb-4 flex items-center gap-2 ml-8">
+                  <span className="text-sm font-medium text-neutral-400">
                     Unfiled
                   </span>
                   <span className="text-xs text-neutral-500">
@@ -802,7 +806,7 @@ export default function Projects() {
                   </span>
                 </div>
               )}
-              <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${folders.length > 0 ? "ml-7" : ""}`}>
+              <div className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 ${folders.length > 0 ? "ml-8" : ""}`}>
                 {unfiledProjects.map((project) => (
                   <ProjectCard
                     key={project.id}

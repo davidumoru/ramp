@@ -3,6 +3,19 @@
 import { useState, useRef, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 
+/* ── Consistent design tokens ── */
+const inputClass =
+  "h-9 w-full rounded-md border border-neutral-700 bg-neutral-800/30 px-3 py-1 text-sm text-white outline-none transition-[color,box-shadow] placeholder:text-neutral-600 focus-visible:border-neutral-500 focus-visible:ring-[3px] focus-visible:ring-neutral-500/20 disabled:pointer-events-none disabled:opacity-50";
+
+const btnOutline =
+  "inline-flex h-9 items-center rounded-md border border-neutral-700 bg-transparent px-4 text-sm font-medium text-neutral-300 transition-all hover:bg-neutral-800 disabled:pointer-events-none disabled:opacity-50";
+
+const btnGhost =
+  "inline-flex h-9 items-center rounded-md px-4 text-sm font-medium text-neutral-400 transition-all hover:bg-neutral-800 hover:text-white";
+
+const btnDestructive =
+  "inline-flex h-9 items-center rounded-md bg-red-600/60 px-4 text-sm font-medium text-white transition-all hover:bg-red-600/80 disabled:pointer-events-none disabled:opacity-50";
+
 export default function Settings() {
   const { data: session } = authClient.useSession();
 
@@ -129,16 +142,19 @@ export default function Settings() {
   });
 
   return (
-    <div className="space-y-10">
+    <div className="flex flex-col gap-y-12">
+      {/* Page title */}
+      <h1 className="text-2xl font-medium text-white whitespace-nowrap">Settings</h1>
+
       {/* Section: Profile */}
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-lg font-medium text-white">Profile</h2>
           <p className="text-sm text-neutral-500">Manage your profile information</p>
         </div>
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 divide-y divide-neutral-800">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-900 divide-y divide-neutral-800">
           {/* Name */}
-          <div className="p-5">
+          <div className="px-6 py-5">
             <div className="flex items-center gap-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -159,20 +175,12 @@ export default function Settings() {
                         if (e.key === "Escape") setEditingName(false);
                       }}
                       disabled={nameSaving}
-                      className="rounded-md border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-sm font-medium text-white outline-none focus:border-neutral-500"
+                      className={inputClass + " max-w-xs"}
                     />
-                    <button
-                      onClick={handleNameSave}
-                      disabled={nameSaving}
-                      className="rounded-md px-3 py-1.5 text-xs font-medium text-white bg-neutral-700 hover:bg-neutral-600 transition-colors"
-                    >
+                    <button onClick={handleNameSave} disabled={nameSaving} className={btnOutline}>
                       {nameSaving ? "Saving..." : "Save"}
                     </button>
-                    <button
-                      onClick={() => setEditingName(false)}
-                      disabled={nameSaving}
-                      className="rounded-md px-3 py-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
-                    >
+                    <button onClick={() => setEditingName(false)} disabled={nameSaving} className={btnGhost}>
                       Cancel
                     </button>
                   </div>
@@ -185,7 +193,7 @@ export default function Settings() {
                         setEditingName(true);
                         setNameError(null);
                       }}
-                      className="rounded-md p-1 text-neutral-600 hover:text-neutral-300 transition-colors"
+                      className="inline-flex size-8 items-center justify-center rounded-md text-neutral-600 transition-colors hover:text-neutral-300"
                       title="Edit name"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -194,14 +202,14 @@ export default function Settings() {
                     </button>
                   </div>
                 )}
-                {nameError && <p className="mt-1 text-xs text-red-400">{nameError}</p>}
+                {nameError && <p className="mt-1 text-sm text-red-400">{nameError}</p>}
                 <p className="mt-0.5 text-sm text-neutral-500">Joined {joinDate}</p>
               </div>
             </div>
           </div>
           {/* Email */}
-          <div className="p-5">
-            <p className="text-xs font-medium text-neutral-400">Email</p>
+          <div className="px-6 py-5">
+            <p className="text-sm font-medium text-neutral-500">Email</p>
             <p className="mt-1 text-sm text-white">{user.email}</p>
           </div>
         </div>
@@ -214,13 +222,13 @@ export default function Settings() {
             <h2 className="text-lg font-medium text-white">Avatar</h2>
             <p className="text-sm text-neutral-500">Switch between Google and generated avatar</p>
           </div>
-          <div className="rounded-xl border border-neutral-800 bg-neutral-900/50">
-            <div className="p-5">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900">
+            <div className="px-6 py-5">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => handleAvatarSwitch(false)}
                   disabled={avatarSaving}
-                  className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-colors ${
+                  className={`flex w-20 flex-col items-center gap-1.5 rounded-xl border p-3 transition-colors ${
                     isUsingDicebear
                       ? "border-neutral-500 bg-neutral-800"
                       : "border-neutral-800 hover:border-neutral-700"
@@ -232,12 +240,12 @@ export default function Settings() {
                     alt="Dicebear"
                     className="h-10 w-10 rounded-full"
                   />
-                  <span className="text-[11px] text-neutral-400">Generated</span>
+                  <span className="text-xs text-neutral-400">Generated</span>
                 </button>
                 <button
                   onClick={() => handleAvatarSwitch(true)}
                   disabled={avatarSaving}
-                  className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-colors ${
+                  className={`flex w-20 flex-col items-center gap-1.5 rounded-xl border p-3 transition-colors ${
                     !isUsingDicebear
                       ? "border-neutral-500 bg-neutral-800"
                       : "border-neutral-800 hover:border-neutral-700"
@@ -249,11 +257,11 @@ export default function Settings() {
                     alt="Google"
                     className="h-10 w-10 rounded-full"
                   />
-                  <span className="text-[11px] text-neutral-400">Google</span>
+                  <span className="text-xs text-neutral-400">Google</span>
                 </button>
-                {avatarSaving && <span className="text-xs text-neutral-500">Saving...</span>}
+                {avatarSaving && <span className="text-sm text-neutral-500">Saving...</span>}
               </div>
-              {avatarError && <p className="mt-2 text-xs text-red-400">{avatarError}</p>}
+              {avatarError && <p className="mt-2 text-sm text-red-400">{avatarError}</p>}
             </div>
           </div>
         </div>
@@ -265,16 +273,16 @@ export default function Settings() {
           <h2 className="text-lg font-medium text-white">Security</h2>
           <p className="text-sm text-neutral-500">Manage your password</p>
         </div>
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900/50">
-          <div className="p-5">
-            <form onSubmit={handlePasswordChange} className="space-y-3">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-900">
+          <div className="px-6 py-5">
+            <form onSubmit={handlePasswordChange} className="flex flex-col gap-3 max-w-sm">
               <input
                 type="password"
                 placeholder="Current password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
-                className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-neutral-500"
+                className={inputClass}
               />
               <input
                 type="password"
@@ -282,7 +290,7 @@ export default function Settings() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
-                className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-neutral-500"
+                className={inputClass}
               />
               <input
                 type="password"
@@ -290,20 +298,18 @@ export default function Settings() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-neutral-500"
+                className={inputClass}
               />
               {passwordMessage && (
-                <p className={`text-xs ${passwordMessage.type === "success" ? "text-green-400" : "text-red-400"}`}>
+                <p className={`text-sm ${passwordMessage.type === "success" ? "text-green-400" : "text-red-400"}`}>
                   {passwordMessage.text}
                 </p>
               )}
-              <button
-                type="submit"
-                disabled={passwordSaving}
-                className="rounded-md border border-neutral-700 bg-neutral-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
-              >
-                {passwordSaving ? "Changing..." : "Change password"}
-              </button>
+              <div>
+                <button type="submit" disabled={passwordSaving} className={btnOutline}>
+                  {passwordSaving ? "Changing..." : "Change password"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -315,35 +321,30 @@ export default function Settings() {
           <h2 className="text-lg font-medium text-red-400">Danger Zone</h2>
           <p className="text-sm text-neutral-500">Irreversible actions</p>
         </div>
-        <div className="rounded-xl border border-red-900/40 bg-red-950/10">
-          <div className="p-5">
+        <div className="rounded-2xl border border-red-900/40 bg-red-950/10">
+          <div className="px-6 py-5">
             <p className="text-sm text-neutral-400">
               Permanently delete your account and all associated data. This action cannot be undone.
             </p>
             {!showDeleteConfirm ? (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="mt-4 rounded-md border border-red-900/60 bg-red-950/30 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-950/50"
-              >
-                Delete account
-              </button>
+              <div className="mt-4">
+                <button onClick={() => setShowDeleteConfirm(true)} className={btnDestructive}>
+                  Delete account
+                </button>
+              </div>
             ) : (
-              <div className="mt-4 space-y-3">
-                <p className="text-xs text-red-300">Enter your password to confirm deletion:</p>
+              <div className="mt-4 flex flex-col gap-3 max-w-sm">
+                <p className="text-sm text-red-300">Enter your password to confirm deletion:</p>
                 <input
                   type="password"
                   placeholder="Password"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
-                  className="w-full rounded-md border border-red-900/40 bg-neutral-800 px-3 py-2 text-sm text-white outline-none placeholder:text-neutral-600 focus:border-red-700"
+                  className="h-9 w-full rounded-md border border-red-900/40 bg-neutral-800/30 px-3 py-1 text-sm text-white outline-none transition-[color,box-shadow] placeholder:text-neutral-600 focus-visible:border-red-700 focus-visible:ring-[3px] focus-visible:ring-red-500/20"
                 />
-                {deleteError && <p className="text-xs text-red-400">{deleteError}</p>}
+                {deleteError && <p className="text-sm text-red-400">{deleteError}</p>}
                 <div className="flex gap-2">
-                  <button
-                    onClick={handleDeleteAccount}
-                    disabled={deleting || !deletePassword}
-                    className="rounded-md border border-red-900/60 bg-red-950/30 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-900/40 disabled:opacity-50"
-                  >
+                  <button onClick={handleDeleteAccount} disabled={deleting || !deletePassword} className={btnDestructive}>
                     {deleting ? "Deleting..." : "Confirm delete"}
                   </button>
                   <button
@@ -352,7 +353,7 @@ export default function Settings() {
                       setDeletePassword("");
                       setDeleteError(null);
                     }}
-                    className="rounded-md px-4 py-2 text-sm text-neutral-400 hover:text-white transition-colors"
+                    className={btnGhost}
                   >
                     Cancel
                   </button>

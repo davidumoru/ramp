@@ -48,11 +48,11 @@ const actionLabels: Record<string, string> = {
 };
 
 const actionColors: Record<string, string> = {
-  created: "bg-green-500/20 text-green-400",
-  updated: "bg-blue-500/20 text-blue-400",
-  deleted: "bg-red-500/20 text-red-400",
-  duplicated: "bg-purple-500/20 text-purple-400",
-  imported: "bg-amber-500/20 text-amber-400",
+  created: "bg-green-950 text-green-400",
+  updated: "bg-blue-950 text-blue-400",
+  deleted: "bg-red-950 text-red-400",
+  duplicated: "bg-purple-950 text-purple-400",
+  imported: "bg-amber-950 text-amber-400",
 };
 
 export default function Overview() {
@@ -76,41 +76,42 @@ export default function Overview() {
   if (loading) {
     return (
       <div className="flex items-center gap-3 py-16 justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-700 border-t-white" />
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-800 border-t-white" />
         <span className="text-sm text-neutral-500">Loading overview...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h2 className="text-lg font-medium text-white">Overview</h2>
-        <p className="text-sm text-neutral-500">
-          Your dashboard at a glance
-        </p>
-      </div>
+    <div className="flex flex-col gap-y-12">
+      {/* Page title */}
+      <h1 className="text-2xl font-medium text-white whitespace-nowrap">Overview</h1>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5">
-          <p className="text-xs font-medium text-neutral-400">Total Projects</p>
-          <p className="mt-2 text-2xl font-semibold text-white">
-            {stats?.totalProjects ?? 0}
-          </p>
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-lg font-medium text-white">Stats</h2>
+          <p className="text-sm text-neutral-500">Your workspace at a glance</p>
         </div>
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5">
-          <p className="text-xs font-medium text-neutral-400">Total Surfaces</p>
-          <p className="mt-2 text-2xl font-semibold text-white">
-            {stats?.totalSurfaces ?? 0}
-          </p>
-        </div>
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5">
-          <p className="text-xs font-medium text-neutral-400">Storage Used</p>
-          <p className="mt-2 text-2xl font-semibold text-white">
-            {formatBytes(stats?.storageEstimate ?? 0)}
-          </p>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
+            <p className="text-sm font-medium text-neutral-500">Total Projects</p>
+            <p className="mt-2 text-4xl font-light text-white">
+              {stats?.totalProjects ?? 0}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
+            <p className="text-sm font-medium text-neutral-500">Total Surfaces</p>
+            <p className="mt-2 text-4xl font-light text-white">
+              {stats?.totalSurfaces ?? 0}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
+            <p className="text-sm font-medium text-neutral-500">Storage Used</p>
+            <p className="mt-2 text-4xl font-light text-white">
+              {formatBytes(stats?.storageEstimate ?? 0)}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -122,22 +123,22 @@ export default function Overview() {
         </div>
 
         {activity.length === 0 ? (
-          <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
-            <p className="text-sm text-neutral-400">No activity yet.</p>
-            <p className="mt-1 text-xs text-neutral-600">
+          <div className="rounded-2xl border border-neutral-800 p-24 text-center">
+            <p className="text-lg font-medium text-neutral-400">No activity yet</p>
+            <p className="mt-1 text-sm text-neutral-600">
               Activity will appear here as you create and modify projects.
             </p>
           </div>
         ) : (
-          <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 divide-y divide-neutral-800">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 divide-y divide-neutral-800">
             {activity.map((event) => (
               <div
                 key={event.id}
-                className="flex items-center gap-3 px-5 py-3.5"
+                className="flex items-center gap-3 px-6 py-3.5"
               >
                 <span
-                  className={`inline-flex shrink-0 rounded-md px-2 py-0.5 text-[11px] font-medium ${
-                    actionColors[event.action] ?? "bg-neutral-700 text-neutral-300"
+                  className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                    actionColors[event.action] ?? "bg-neutral-800 text-neutral-300"
                   }`}
                 >
                   {actionLabels[event.action] ?? event.action}
