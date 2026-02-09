@@ -9,6 +9,7 @@ import { Layers01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 export default function SignIn() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const lastMethod = (authClient as { getLastUsedLoginMethod?: () => string | null }).getLastUsedLoginMethod?.();
 
   if (isPending) {
     return (
@@ -76,7 +79,7 @@ export default function SignIn() {
               variant="outline"
               type="button"
               onClick={handleGoogleSignIn}
-              className="mt-8 w-full"
+              className="mt-8 w-full relative"
             >
               <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true" className="mr-2">
                 <path d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z" fill="#4285F4"/>
@@ -85,6 +88,9 @@ export default function SignIn() {
                 <path d="M8.98 3.58c1.16 0 2.2.4 3.02 1.2l2.27-2.27A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.9z" fill="#EA4335"/>
               </svg>
               Continue with Google
+              {lastMethod === "google" && (
+                <Badge className="absolute -top-2 -right-2 bg-primary text-primary-foreground border-primary shadow-sm px-1.5 py-0.5">Last used</Badge>
+              )}
             </Button>
 
             <div className="relative my-6">
@@ -129,9 +135,12 @@ export default function SignIn() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full"
+                className="w-full relative"
               >
                 {loading ? "Signing in..." : "Sign in"}
+                {lastMethod === "email" && (
+                  <Badge className="absolute -top-2 -right-2 bg-foreground text-background border-foreground shadow-sm px-1.5 py-0.5">Last used</Badge>
+                )}
               </Button>
             </form>
 

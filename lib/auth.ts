@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { user as userTable } from "@/lib/db/schema";
+import { lastLoginMethod } from "better-auth/plugins";
 
 const pendingGoogleImages = new Map<string, string>();
 
@@ -10,6 +11,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
+  plugins: [lastLoginMethod()],
   emailAndPassword: {
     enabled: true,
   },
