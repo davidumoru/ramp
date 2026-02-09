@@ -157,22 +157,22 @@ export default function SignIn() {
       </div>
 
       {/* Right — branding panel */}
-      <div className="hidden lg:flex lg:w-1/2 lg:items-center lg:justify-center lg:border-l lg:border-border lg:bg-muted/30">
+      <div className="hidden lg:flex lg:w-1/2 lg:items-center lg:justify-center lg:border-l lg:border-border bg-zinc-900/50">
         <div className="max-w-md px-12">
-          <div className="mb-8 text-[64px] font-light leading-none text-foreground/20">&ldquo;</div>
-          <p className="text-xl leading-relaxed text-foreground/80">
-            Ramp makes projection mapping intuitive. Map surfaces, upload textures, and warp visuals in real-time — all from your browser.
+          <div className="mb-2 text-8xl font-serif leading-none text-muted-foreground/20 -ml-4">&ldquo;</div>
+          <p className="text-2xl font-medium leading-tight text-foreground tracking-tight">
+            Ramp transformed our installation workflow. What used to take hours of calibration now happens in minutes, right in the browser.
           </p>
-          <div className="mt-8 flex items-center gap-3">
+          <div className="mt-10 flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://api.dicebear.com/9.x/glass/svg?seed=ramp-team"
-              alt=""
-              className="h-9 w-9 rounded-full bg-background"
+              src="https://api.dicebear.com/9.x/glass/svg?seed=marcus"
+              alt="Marcus Thorne"
+              className="h-11 w-11 rounded-full border border-border bg-background"
             />
             <div>
-              <p className="text-sm font-medium text-foreground">Projection Mapping</p>
-              <p className="text-xs text-muted-foreground">Browser-based tool</p>
+              <p className="text-sm font-semibold text-foreground">Marcus Thorne</p>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Creative Director, Neon Studio</p>
             </div>
           </div>
         </div>
