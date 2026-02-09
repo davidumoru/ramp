@@ -76,37 +76,37 @@ export default function Overview() {
   if (loading) {
     return (
       <div className="flex items-center gap-3 py-16 justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-800 border-t-white" />
-        <span className="text-sm text-neutral-500">Loading overview...</span>
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-foreground" />
+        <span className="text-sm text-muted-foreground">Loading overview...</span>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-y-12">
-      <h1 className="text-2xl font-medium text-white whitespace-nowrap">Overview</h1>
+      <h1 className="text-2xl font-medium text-foreground whitespace-nowrap">Overview</h1>
 
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-medium text-white">Stats</h2>
-          <p className="text-sm text-neutral-500">Your workspace at a glance</p>
+          <h2 className="text-lg font-medium text-foreground">Stats</h2>
+          <p className="text-sm text-muted-foreground">Your workspace at a glance</p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-            <p className="text-sm font-medium text-neutral-500">Total Projects</p>
-            <p className="mt-2 text-4xl font-light text-white">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <p className="text-sm font-medium text-muted-foreground">Total Projects</p>
+            <p className="mt-2 text-4xl font-light text-foreground">
               {stats?.totalProjects ?? 0}
             </p>
           </div>
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-            <p className="text-sm font-medium text-neutral-500">Total Surfaces</p>
-            <p className="mt-2 text-4xl font-light text-white">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <p className="text-sm font-medium text-muted-foreground">Total Surfaces</p>
+            <p className="mt-2 text-4xl font-light text-foreground">
               {stats?.totalSurfaces ?? 0}
             </p>
           </div>
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-            <p className="text-sm font-medium text-neutral-500">Storage Used</p>
-            <p className="mt-2 text-4xl font-light text-white">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <p className="text-sm font-medium text-muted-foreground">Storage Used</p>
+            <p className="mt-2 text-4xl font-light text-foreground">
               {formatBytes(stats?.storageEstimate ?? 0)}
             </p>
           </div>
@@ -115,35 +115,35 @@ export default function Overview() {
 
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-medium text-white">Recent Activity</h2>
-          <p className="text-sm text-neutral-500">Your latest actions</p>
+          <h2 className="text-lg font-medium text-foreground">Recent Activity</h2>
+          <p className="text-sm text-muted-foreground">Your latest actions</p>
         </div>
 
         {activity.length === 0 ? (
-          <div className="rounded-2xl border border-neutral-800 p-24 text-center">
-            <p className="text-lg font-medium text-neutral-400">No activity yet</p>
-            <p className="mt-1 text-sm text-neutral-600">
+          <div className="rounded-2xl border border-border p-24 text-center">
+            <p className="text-lg font-medium text-muted-foreground">No activity yet</p>
+            <p className="mt-1 text-sm text-muted-foreground/60">
               Activity will appear here as you create and modify projects.
             </p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-900 divide-y divide-neutral-800">
+          <div className="rounded-2xl border border-border bg-card divide-y divide-border shadow-sm">
             {activity.map((event) => (
               <div
                 key={event.id}
                 className="flex items-center gap-3 px-6 py-3.5"
               >
                 <span
-                  className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    actionColors[event.action] ?? "bg-neutral-800 text-neutral-300"
+                  className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
+                    actionColors[event.action] ?? "bg-muted text-muted-foreground"
                   }`}
                 >
                   {actionLabels[event.action] ?? event.action}
                 </span>
-                <span className="flex-1 truncate text-sm text-white">
+                <span className="flex-1 truncate text-sm text-foreground">
                   {event.projectName}
                 </span>
-                <span className="shrink-0 text-xs text-neutral-500">
+                <span className="shrink-0 text-xs text-muted-foreground">
                   {timeAgo(event.createdAt)}
                 </span>
               </div>
