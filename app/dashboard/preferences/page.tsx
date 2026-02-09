@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { ToggleSwitch } from "@/components/ToggleSwitch";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface Preferences {
   defaultSegments: number;
@@ -24,7 +27,7 @@ export default function PreferencesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{
-    type: "success" | "error";
+    type: "success" | "error" | "info";
     text: string;
   } | null>(null);
 
@@ -45,7 +48,7 @@ export default function PreferencesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleSave = async () => {
+  const handleSave = async (updatedPrefs = prefs) => {
     setSaving(true);
     setMessage(null);
 
@@ -53,7 +56,7 @@ export default function PreferencesPage() {
       const res = await fetch("/api/preferences", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(prefs),
+        body: JSON.stringify(updatedPrefs),
       });
 
       if (res.ok) {
@@ -68,32 +71,37 @@ export default function PreferencesPage() {
     }
   };
 
+  const handleReset = async () => {
+    setPrefs(DEFAULTS);
+    await handleSave(DEFAULTS);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center gap-3 py-16 justify-center">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-800 border-t-white" />
-        <span className="text-sm text-neutral-500">Loading preferences...</span>
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-foreground" />
+        <span className="text-sm text-muted-foreground">Loading preferences...</span>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-y-12">
-      <h1 className="text-2xl font-medium text-white whitespace-nowrap">Editor Preferences</h1>
+      <h1 className="text-2xl font-medium text-foreground whitespace-nowrap">Editor Preferences</h1>
 
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-medium text-white">Defaults</h2>
-          <p className="text-sm text-neutral-500">
+          <h2 className="text-lg font-medium text-foreground">Defaults</h2>
+          <p className="text-sm text-muted-foreground">
             Configure default settings for new surfaces and auto-save behavior
           </p>
         </div>
 
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-900 divide-y divide-neutral-800">
+        <div className="rounded-2xl border border-border bg-card divide-y divide-border">
           <div className="flex items-center justify-between px-6 py-5">
             <div>
-              <p className="text-sm font-medium text-white">Default Segments</p>
-              <p className="mt-0.5 text-sm text-neutral-500">
+              <p className="text-sm font-medium text-foreground">Default Segments</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 Mesh resolution for new surfaces ({prefs.defaultSegments})
               </p>
             </div>
@@ -109,14 +117,14 @@ export default function PreferencesPage() {
                   defaultSegments: parseInt(e.target.value, 10),
                 }))
               }
-              className="w-32 accent-[#e54d2e]"
+              className="w-32 accent-primary"
             />
           </div>
 
           <div className="flex items-center justify-between px-6 py-5">
             <div>
-              <p className="text-sm font-medium text-white">Default Wireframe</p>
-              <p className="mt-0.5 text-sm text-neutral-500">
+              <p className="text-sm font-medium text-foreground">Default Wireframe</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 Show wireframe on new surfaces
               </p>
             </div>
@@ -128,8 +136,8 @@ export default function PreferencesPage() {
 
           <div className="flex items-center justify-between px-6 py-5">
             <div>
-              <p className="text-sm font-medium text-white">Default Bezier</p>
-              <p className="mt-0.5 text-sm text-neutral-500">
+              <p className="text-sm font-medium text-foreground">Default Bezier</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 Enable bezier curves on new surfaces
               </p>
             </div>
@@ -141,8 +149,8 @@ export default function PreferencesPage() {
 
           <div className="flex items-center justify-between px-6 py-5">
             <div>
-              <p className="text-sm font-medium text-white">Auto-Save</p>
-              <p className="mt-0.5 text-sm text-neutral-500">
+              <p className="text-sm font-medium text-foreground">Auto-Save</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 Automatically save when editing existing projects
               </p>
             </div>
@@ -155,14 +163,14 @@ export default function PreferencesPage() {
           {prefs.autoSave && (
             <div className="flex items-center justify-between px-6 py-5">
               <div>
-                <p className="text-sm font-medium text-white">
+                <p className="text-sm font-medium text-foreground">
                   Auto-Save Interval
                 </p>
-                <p className="mt-0.5 text-sm text-neutral-500">
+                <p className="mt-0.5 text-sm text-muted-foreground">
                   Seconds between auto-saves (5–300)
                 </p>
               </div>
-              <input
+              <Input
                 type="number"
                 min={5}
                 max={300}
@@ -176,7 +184,7 @@ export default function PreferencesPage() {
                     ),
                   }))
                 }
-                className="h-9 w-20 rounded-md border border-neutral-700 bg-neutral-800/30 px-3 py-1 text-sm text-white text-center outline-none transition-[color,box-shadow] placeholder:text-neutral-600 focus-visible:border-neutral-500 focus-visible:ring-[3px] focus-visible:ring-neutral-500/20"
+                className="w-20 text-center"
               />
             </div>
           )}
@@ -184,18 +192,29 @@ export default function PreferencesPage() {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          onClick={handleSave}
+        <Button
+          onClick={() => handleSave()}
           disabled={saving}
-          className="inline-flex h-9 items-center rounded-md bg-[#e54d2e] px-4 text-sm font-medium text-white transition-all hover:bg-[#e54d2e]/90 disabled:pointer-events-none disabled:opacity-50"
+          className="min-w-35"
         >
           {saving ? "Saving..." : "Save preferences"}
-        </button>
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleReset}
+          disabled={saving}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          Reset to defaults
+        </Button>
         {message && (
           <p
-            className={`text-sm ${
-              message.type === "success" ? "text-green-400" : "text-red-400"
-            }`}
+            className={cn(
+              "text-sm",
+              message.type === "success" && "text-green-400",
+              message.type === "error" && "text-red-400",
+              message.type === "info" && "text-primary"
+            )}
           >
             {message.text}
           </p>
