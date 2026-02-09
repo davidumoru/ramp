@@ -145,8 +145,6 @@ export class SurfaceManager {
     }
   }
 
-  // --- Serialization ---
-
   serialize(): SerializedSurface[] {
     return this.surfaces.map((s) => s.serialize());
   }
@@ -165,23 +163,17 @@ export class SurfaceManager {
     this.onSurfaceCountChange?.(this.surfaces.length);
   }
 
-  // --- Segments ---
-
   setSegmentsOnSelected(segments: number): void {
     if (this.selectedSurface) {
       this.selectedSurface.rebuild(segments);
     }
   }
 
-  // --- Bezier ---
-
   setBezierOnSelected(enabled: boolean): void {
     if (this.selectedSurface) {
       this.selectedSurface.setBezierEnabled(enabled);
     }
   }
-
-  // --- Duplication ---
 
   duplicateSelected(): void {
     if (!this.selectedSurface) return;
@@ -193,8 +185,6 @@ export class SurfaceManager {
     this.selectSurface(clone);
     this.onSurfaceCountChange?.(this.surfaces.length);
   }
-
-  // --- Selection ---
 
   private selectSurface(surface: Surface | null): void {
     if (this.selectedSurface && this.selectedSurface !== surface) {
@@ -208,8 +198,6 @@ export class SurfaceManager {
     this.onSegmentsChange?.(surface?.getSegments() ?? 32);
     this.onBezierChange?.(surface?.isBezierEnabled ?? false);
   }
-
-  // --- Mouse/ray helpers ---
 
   private updateMouse(e: MouseEvent): void {
     const rect = this.canvas.getBoundingClientRect();

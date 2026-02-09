@@ -105,7 +105,7 @@ export class PinManager {
   private addPin(worldPos: THREE.Vector3): Pin {
     const handle = new THREE.Mesh(this.pinGeometry, this.pinMaterial.clone());
     handle.position.copy(worldPos);
-    handle.position.z = 0.01; // slightly in front of mesh
+    handle.position.z = 0.01;
     handle.renderOrder = 1;
     handle.visible = this.pinsVisible;
     this.scene.add(handle);
@@ -128,12 +128,10 @@ export class PinManager {
     this.warpSolver.solve(this.pins, this.meshBuilder);
   }
 
-  /** Re-apply warp after mesh rebuild. Pins keep their origin/position. */
   reapplyWarp(): void {
     this.warpSolver.solve(this.pins, this.meshBuilder);
   }
 
-  /** Remove all pins and reset mesh to unwarped state */
   clearAll(): void {
     for (const pin of this.pins) {
       this.scene.remove(pin.handle);

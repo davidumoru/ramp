@@ -117,7 +117,6 @@ export function Toolbar({
       role="toolbar"
       aria-label="Projection mapping controls"
     >
-      {/* Group: Project Info */}
       {projectName && (
         <div className="flex items-center px-3 py-1.5">
           <span className="text-xs font-bold tracking-widest uppercase text-white/40 mr-2">Project</span>
@@ -127,7 +126,6 @@ export function Toolbar({
 
       {projectName && <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />}
 
-      {/* Group: Create */}
       <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
         <ToolbarButton
           variant="toolbar"
@@ -143,7 +141,6 @@ export function Toolbar({
 
       <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />
 
-      {/* Group: Surface Edit (Contextual) */}
       <div className={cn(
         "flex items-center gap-1 transition-opacity duration-200",
         !hasSelection && "opacity-40 pointer-events-none"
@@ -181,7 +178,6 @@ export function Toolbar({
 
       <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />
 
-      {/* Group: Warp Controls */}
       <div className={cn(
         "flex items-center gap-3 px-2 transition-opacity duration-200",
         !hasSelection && "opacity-40 pointer-events-none"
@@ -213,7 +209,6 @@ export function Toolbar({
 
       <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />
 
-      {/* Group: View Controls */}
       <div className="flex items-center gap-1">
         <ToolbarButton
           data-active={handlesVisible}
@@ -241,7 +236,6 @@ export function Toolbar({
 
       <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />
 
-      {/* Group: System */}
       <div className="flex items-center gap-1">
         <ToolbarButton
           className="hover:text-amber-400"

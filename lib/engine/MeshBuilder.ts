@@ -6,7 +6,6 @@ export class MeshBuilder {
   private material: THREE.MeshBasicMaterial;
   readonly mesh: THREE.Mesh;
 
-  /** Snapshot of original vertex positions (before any warping) */
   private basePositions: Float32Array;
 
   private config: MeshConfig;
@@ -45,7 +44,6 @@ export class MeshBuilder {
     return this.geometry.attributes.position as THREE.BufferAttribute;
   }
 
-  /** Rebuild geometry with a new segment count, preserving material/texture */
   rebuild(segments: number): void {
     this.config.segments = segments;
 

@@ -61,7 +61,6 @@ export default function SignIn() {
 
   return (
     <div className="flex min-h-screen" style={{ overflow: "auto" }}>
-      {/* Left — form */}
       <div className="relative flex w-full flex-col justify-between lg:w-1/2">
         <div className="p-8">
           <Link href="/" className="inline-flex items-center gap-2 text-[15px] font-semibold tracking-tight text-foreground">
@@ -156,7 +155,6 @@ export default function SignIn() {
         <div className="p-8" />
       </div>
 
-      {/* Right — branding panel */}
       <div className="hidden lg:flex lg:w-1/2 lg:items-center lg:justify-center lg:border-l lg:border-border bg-zinc-900/50">
         <div className="max-w-md px-12">
           <div className="mb-2 text-8xl font-serif leading-none text-muted-foreground/20 -ml-4">&ldquo;</div>
