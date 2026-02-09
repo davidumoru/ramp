@@ -17,6 +17,11 @@ import {
 import { AuthButton } from "./AuthButton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ToolbarProps {
   onAddSurface: () => void;
@@ -37,7 +42,28 @@ interface ToolbarProps {
   handlesVisible: boolean;
   wireframe: boolean;
   bezierEnabled: boolean;
-  selectedSegments: number;
+    selectedSegments: number;
+  }
+  
+function ToolbarButton({
+  children,
+  tooltip,
+  variant = "toolbar",
+  size = "icon-sm",
+  ...props
+}: React.ComponentProps<typeof Button> & { tooltip: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant={variant} size={size} {...props}>
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={12}>
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 export function Toolbar({
@@ -87,187 +113,173 @@ export function Toolbar({
 
   return (
     <div
-      className="fixed top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 rounded-xl bg-black/75 backdrop-blur-xl border border-white/10 z-50 select-none motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 duration-200"
+      className="fixed top-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 p-1.5 rounded-2xl bg-black/80 backdrop-blur-2xl border border-white/10 shadow-2xl z-50 select-none motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-4 duration-300"
       role="toolbar"
       aria-label="Projection mapping controls"
     >
+      {/* Group: Project Info */}
       {projectName && (
-        <>
-          <span className="text-sm font-medium text-muted-foreground px-1">{projectName}</span>
-          <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
-        </>
+        <div className="flex items-center px-3 py-1.5">
+          <span className="text-xs font-bold tracking-widest uppercase text-white/40 mr-2">Project</span>
+          <span className="text-sm font-semibold text-white/90 truncate max-w-30">{projectName}</span>
+        </div>
       )}
 
-      <Button
-        variant="toolbar"
-        className="border-primary/40 text-primary hover:bg-primary/15 hover:text-primary hover:border-primary/50"
-        onClick={onAddSurface}
-        aria-label="Add a new surface"
-        title="Add a new quad surface"
-      >
-        <HugeiconsIcon icon={Add01Icon} size={16} strokeWidth={1.5} />
-        Surface
-      </Button>
+      {projectName && <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />}
 
-      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="sr-only"
-        aria-label="Upload image texture"
-        id="texture-upload"
-      />
-      <Button
-        variant="toolbar"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={!hasSelection}
-        aria-label="Upload image to selected surface"
-        title={
-          hasSelection
-            ? "Upload image to selected surface"
-            : "Select a surface first"
-        }
-      >
-        <HugeiconsIcon icon={Upload01Icon} size={16} strokeWidth={1.5} />
-        Upload
-      </Button>
-
-      <Button
-        variant="toolbar"
-        onClick={onDeleteSurface}
-        disabled={!hasSelection}
-        aria-label="Delete selected surface"
-        title={hasSelection ? "Delete selected surface" : "Select a surface first"}
-      >
-        <HugeiconsIcon icon={Delete01Icon} size={16} strokeWidth={1.5} />
-        Delete
-      </Button>
-
-      <Button
-        variant="toolbar"
-        onClick={onDuplicateSurface}
-        disabled={!hasSelection}
-        aria-label="Duplicate selected surface"
-        title={hasSelection ? "Duplicate selected surface" : "Select a surface first"}
-      >
-        <HugeiconsIcon icon={Copy01Icon} size={16} strokeWidth={1.5} />
-        Duplicate
-      </Button>
-
-      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
-
-      <div className="flex items-center gap-1.5">
-        <span className="text-white/50 text-xs font-sans pl-1">Segments</span>
-        <input
-          type="range"
-          className="w-20 h-1 accent-primary cursor-pointer appearance-none bg-white/20 rounded-full"
-          min={4}
-          max={64}
-          step={1}
-          value={selectedSegments}
-          onChange={(e) => onSegmentsChange(Number(e.target.value))}
-          disabled={!hasSelection}
-          aria-label="Surface segment count"
-          title={hasSelection ? `Segments: ${selectedSegments}` : "Select a surface first"}
-        />
-        <span className="text-white/50 text-xs font-mono min-w-6 text-right">{selectedSegments}</span>
+      {/* Group: Create */}
+      <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
+        <ToolbarButton
+          variant="toolbar"
+          size="sm"
+          className="bg-primary text-white border-none hover:bg-primary/90 hover:text-white"
+          onClick={onAddSurface}
+          tooltip="Add New Surface [A]"
+        >
+          <HugeiconsIcon icon={Add01Icon} size={18} strokeWidth={2} />
+          <span className="hidden sm:inline ml-1">Add Surface</span>
+        </ToolbarButton>
       </div>
 
-      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
+      <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />
 
-      <Button
-        variant="toolbar"
-        className={cn(handlesVisible && "bg-white/10 text-white border-white/25")}
-        onClick={onToggleHandles}
-        aria-label={handlesVisible ? "Hide handles" : "Show handles"}
-        aria-pressed={handlesVisible}
-        title={handlesVisible ? "Hide corner handles" : "Show corner handles"}
-      >
-        <HugeiconsIcon icon={GridIcon} size={16} strokeWidth={1.5} />
-        Handles
-      </Button>
+      {/* Group: Surface Edit (Contextual) */}
+      <div className={cn(
+        "flex items-center gap-1 transition-opacity duration-200",
+        !hasSelection && "opacity-40 pointer-events-none"
+      )}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="sr-only"
+          id="texture-upload"
+        />
+        <ToolbarButton
+          onClick={() => fileInputRef.current?.click()}
+          tooltip="Upload Texture [U]"
+        >
+          <HugeiconsIcon icon={Upload01Icon} size={18} />
+        </ToolbarButton>
 
-      <Button
-        variant="toolbar"
-        className={cn(bezierEnabled && "bg-white/10 text-white border-white/25")}
-        onClick={onToggleBezier}
-        disabled={!hasSelection}
-        aria-label={bezierEnabled ? "Disable bezier edges" : "Enable bezier edges"}
-        aria-pressed={bezierEnabled}
-        title={
-          hasSelection
-            ? bezierEnabled
-              ? "Disable bezier curved edges"
-              : "Enable bezier curved edges"
-            : "Select a surface first"
-        }
-      >
-        <HugeiconsIcon icon={EaseCurveControlPointsIcon} size={16} strokeWidth={1.5} />
-        Bezier
-      </Button>
+        <ToolbarButton
+          onClick={onDuplicateSurface}
+          tooltip="Duplicate Surface [D]"
+        >
+          <HugeiconsIcon icon={Copy01Icon} size={18} />
+        </ToolbarButton>
 
-      <Button
-        variant="toolbar"
-        className={cn(wireframe && "bg-white/10 text-white border-white/25")}
-        onClick={onToggleWireframe}
-        aria-label={wireframe ? "Hide wireframe" : "Show wireframe"}
-        aria-pressed={wireframe}
-        title={wireframe ? "Hide wireframe overlay" : "Show wireframe overlay"}
-      >
-        <HugeiconsIcon icon={GridViewIcon} size={16} strokeWidth={1.5} />
-        Wire
-      </Button>
+        <ToolbarButton
+          className="hover:text-red-400 hover:border-red-400/30"
+          onClick={onDeleteSurface}
+          tooltip="Delete Surface [Backspace]"
+        >
+          <HugeiconsIcon icon={Delete01Icon} size={18} />
+        </ToolbarButton>
+      </div>
 
-      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
+      <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />
 
-      <Button
-        variant="toolbar"
-        onClick={onReset}
-        disabled={surfaceCount === 0}
-        aria-label="Reset all surfaces"
-        title="Remove all surfaces"
-      >
-        <HugeiconsIcon icon={RefreshIcon} size={16} strokeWidth={1.5} />
-        Reset
-      </Button>
+      {/* Group: Warp Controls */}
+      <div className={cn(
+        "flex items-center gap-3 px-2 transition-opacity duration-200",
+        !hasSelection && "opacity-40 pointer-events-none"
+      )}>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-bold uppercase text-white/30 tracking-tighter">Density</span>
+            <span className="text-[10px] font-mono text-primary font-bold">{selectedSegments}</span>
+          </div>
+          <input
+            type="range"
+            className="w-24 h-1 accent-primary cursor-pointer appearance-none bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+            min={4}
+            max={64}
+            step={1}
+            value={selectedSegments}
+            onChange={(e) => onSegmentsChange(Number(e.target.value))}
+          />
+        </div>
 
-      <Button
-        variant="toolbar"
-        onClick={onFullscreen}
-        aria-label="Toggle fullscreen"
-        title="Toggle fullscreen for projection"
-      >
-        <HugeiconsIcon icon={FullScreenIcon} size={16} strokeWidth={1.5} />
-        Fullscreen
-      </Button>
+        <ToolbarButton
+          data-active={bezierEnabled}
+          onClick={onToggleBezier}
+          tooltip="Toggle Bezier Curves [B]"
+        >
+          <HugeiconsIcon icon={EaseCurveControlPointsIcon} size={18} />
+        </ToolbarButton>
+      </div>
 
-      {isLoggedIn && (
-        <>
-          <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
+      <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />
 
-          <Button
-            variant="toolbar"
+      {/* Group: View Controls */}
+      <div className="flex items-center gap-1">
+        <ToolbarButton
+          data-active={handlesVisible}
+          onClick={onToggleHandles}
+          tooltip="Toggle Control Handles [H]"
+        >
+          <HugeiconsIcon icon={GridIcon} size={18} />
+        </ToolbarButton>
+
+        <ToolbarButton
+          data-active={wireframe}
+          onClick={onToggleWireframe}
+          tooltip="Toggle Wireframe Overlay [W]"
+        >
+          <HugeiconsIcon icon={GridViewIcon} size={18} />
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={onFullscreen}
+          tooltip="Fullscreen Mode [F]"
+        >
+          <HugeiconsIcon icon={FullScreenIcon} size={18} />
+        </ToolbarButton>
+      </div>
+
+      <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />
+
+      {/* Group: System */}
+      <div className="flex items-center gap-1">
+        <ToolbarButton
+          className="hover:text-amber-400"
+          onClick={onReset}
+          disabled={surfaceCount === 0}
+          tooltip="Clear Canvas"
+        >
+          <HugeiconsIcon icon={RefreshIcon} size={18} />
+        </ToolbarButton>
+
+        {isLoggedIn && (
+          <ToolbarButton
+            size="sm"
             className={cn(
-              saveStatus === "saved" && "text-green-400 border-green-400/40",
-              saveStatus === "error" && "text-red-400 border-red-400/40"
+              "min-w-20",
+              saveStatus === "saved" && "text-green-400 border-green-400/40 bg-green-400/5",
+              saveStatus === "error" && "text-red-400 border-red-400/40 bg-red-400/5"
             )}
             onClick={handleSave}
             disabled={surfaceCount === 0 || saveStatus === "saving"}
-            aria-label="Save project"
-            title="Save current configuration"
+            tooltip="Save Project [S]"
           >
-            <HugeiconsIcon icon={FloppyDiskIcon} size={16} strokeWidth={1.5} />
-            {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved!" : saveStatus === "error" ? "Failed" : "Save"}
-          </Button>
-        </>
-      )}
+            <HugeiconsIcon 
+              icon={FloppyDiskIcon} 
+              size={18} 
+              className={cn(saveStatus === "saving" && "animate-spin")} 
+            />
+            <span className="hidden lg:inline whitespace-nowrap ml-1">
+              {saveStatus === "saving" ? "Saving" : saveStatus === "saved" ? "Saved" : saveStatus === "error" ? "Error" : "Save"}
+            </span>
+          </ToolbarButton>
+        )}
+      </div>
 
-      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
+      <div className="w-px h-6 bg-white/10 mx-1" aria-hidden="true" />
 
       <AuthButton />
     </div>
   );
 }
+  
