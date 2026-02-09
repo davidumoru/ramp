@@ -288,8 +288,8 @@ export function ProjectionCanvas() {
   }, []);
 
   return (
-    <div ref={containerRef} className="projection-container">
-      <canvas ref={canvasRef} className="projection-canvas" />
+    <div ref={containerRef} className="fixed inset-0 w-screen h-screen bg-black overflow-hidden">
+      <canvas ref={canvasRef} className="block w-full h-full touch-none" />
       <Toolbar
         onAddSurface={handleAddSurface}
         onDeleteSurface={handleDeleteSurface}
