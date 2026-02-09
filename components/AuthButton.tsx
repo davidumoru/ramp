@@ -4,6 +4,7 @@ import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { User02Icon } from "@hugeicons/core-free-icons";
+import { Button } from "@/components/ui/button";
 
 export function AuthButton() {
   const { data: session, isPending } = authClient.useSession();
@@ -16,14 +17,12 @@ export function AuthButton() {
 
   if (!session?.user) {
     return (
-      <Link
-        href="/sign-in"
-        className="toolbar-btn"
-        style={{ textDecoration: "none" }}
-      >
-        <HugeiconsIcon icon={User02Icon} size={16} strokeWidth={1.5} />
-        Sign in
-      </Link>
+      <Button variant="toolbar" asChild>
+        <Link href="/sign-in">
+          <HugeiconsIcon icon={User02Icon} size={16} strokeWidth={1.5} />
+          Sign in
+        </Link>
+      </Button>
     );
   }
 

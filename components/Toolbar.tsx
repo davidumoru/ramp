@@ -15,6 +15,8 @@ import {
   FloppyDiskIcon,
 } from "@hugeicons/core-free-icons";
 import { AuthButton } from "./AuthButton";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ToolbarProps {
   onAddSurface: () => void;
@@ -85,28 +87,29 @@ export function Toolbar({
 
   return (
     <div
-      className="toolbar"
+      className="fixed top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 rounded-xl bg-black/75 backdrop-blur-xl border border-white/10 z-50 select-none motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 duration-200"
       role="toolbar"
       aria-label="Projection mapping controls"
     >
       {projectName && (
         <>
-          <span className="text-[13px] font-medium text-neutral-400 px-1">{projectName}</span>
-          <div className="toolbar-divider" aria-hidden="true" />
+          <span className="text-sm font-medium text-muted-foreground px-1">{projectName}</span>
+          <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
         </>
       )}
 
-      <button
-        className="toolbar-btn toolbar-btn-primary"
+      <Button
+        variant="toolbar"
+        className="border-primary/40 text-primary hover:bg-primary/15 hover:text-primary hover:border-primary/50"
         onClick={onAddSurface}
         aria-label="Add a new surface"
         title="Add a new quad surface"
       >
         <HugeiconsIcon icon={Add01Icon} size={16} strokeWidth={1.5} />
         Surface
-      </button>
+      </Button>
 
-      <div className="toolbar-divider" aria-hidden="true" />
+      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
 
       <input
         ref={fileInputRef}
@@ -117,8 +120,8 @@ export function Toolbar({
         aria-label="Upload image texture"
         id="texture-upload"
       />
-      <button
-        className="toolbar-btn"
+      <Button
+        variant="toolbar"
         onClick={() => fileInputRef.current?.click()}
         disabled={!hasSelection}
         aria-label="Upload image to selected surface"
@@ -130,10 +133,10 @@ export function Toolbar({
       >
         <HugeiconsIcon icon={Upload01Icon} size={16} strokeWidth={1.5} />
         Upload
-      </button>
+      </Button>
 
-      <button
-        className="toolbar-btn"
+      <Button
+        variant="toolbar"
         onClick={onDeleteSurface}
         disabled={!hasSelection}
         aria-label="Delete selected surface"
@@ -141,10 +144,10 @@ export function Toolbar({
       >
         <HugeiconsIcon icon={Delete01Icon} size={16} strokeWidth={1.5} />
         Delete
-      </button>
+      </Button>
 
-      <button
-        className="toolbar-btn"
+      <Button
+        variant="toolbar"
         onClick={onDuplicateSurface}
         disabled={!hasSelection}
         aria-label="Duplicate selected surface"
@@ -152,15 +155,15 @@ export function Toolbar({
       >
         <HugeiconsIcon icon={Copy01Icon} size={16} strokeWidth={1.5} />
         Duplicate
-      </button>
+      </Button>
 
-      <div className="toolbar-divider" aria-hidden="true" />
+      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
 
-      <div className="toolbar-segment-group">
-        <span className="toolbar-label">Segments</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-white/50 text-xs font-sans pl-1">Segments</span>
         <input
           type="range"
-          className="toolbar-slider"
+          className="w-20 h-1 accent-primary cursor-pointer appearance-none bg-white/20 rounded-full"
           min={4}
           max={64}
           step={1}
@@ -170,13 +173,14 @@ export function Toolbar({
           aria-label="Surface segment count"
           title={hasSelection ? `Segments: ${selectedSegments}` : "Select a surface first"}
         />
-        <span className="toolbar-value">{selectedSegments}</span>
+        <span className="text-white/50 text-xs font-mono min-w-6 text-right">{selectedSegments}</span>
       </div>
 
-      <div className="toolbar-divider" aria-hidden="true" />
+      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
 
-      <button
-        className={`toolbar-btn ${handlesVisible ? "toolbar-btn-active" : ""}`}
+      <Button
+        variant="toolbar"
+        className={cn(handlesVisible && "bg-white/10 text-white border-white/25")}
         onClick={onToggleHandles}
         aria-label={handlesVisible ? "Hide handles" : "Show handles"}
         aria-pressed={handlesVisible}
@@ -184,10 +188,11 @@ export function Toolbar({
       >
         <HugeiconsIcon icon={GridIcon} size={16} strokeWidth={1.5} />
         Handles
-      </button>
+      </Button>
 
-      <button
-        className={`toolbar-btn ${bezierEnabled ? "toolbar-btn-active" : ""}`}
+      <Button
+        variant="toolbar"
+        className={cn(bezierEnabled && "bg-white/10 text-white border-white/25")}
         onClick={onToggleBezier}
         disabled={!hasSelection}
         aria-label={bezierEnabled ? "Disable bezier edges" : "Enable bezier edges"}
@@ -202,10 +207,11 @@ export function Toolbar({
       >
         <HugeiconsIcon icon={EaseCurveControlPointsIcon} size={16} strokeWidth={1.5} />
         Bezier
-      </button>
+      </Button>
 
-      <button
-        className={`toolbar-btn ${wireframe ? "toolbar-btn-active" : ""}`}
+      <Button
+        variant="toolbar"
+        className={cn(wireframe && "bg-white/10 text-white border-white/25")}
         onClick={onToggleWireframe}
         aria-label={wireframe ? "Hide wireframe" : "Show wireframe"}
         aria-pressed={wireframe}
@@ -213,12 +219,12 @@ export function Toolbar({
       >
         <HugeiconsIcon icon={GridViewIcon} size={16} strokeWidth={1.5} />
         Wire
-      </button>
+      </Button>
 
-      <div className="toolbar-divider" aria-hidden="true" />
+      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
 
-      <button
-        className="toolbar-btn"
+      <Button
+        variant="toolbar"
         onClick={onReset}
         disabled={surfaceCount === 0}
         aria-label="Reset all surfaces"
@@ -226,24 +232,28 @@ export function Toolbar({
       >
         <HugeiconsIcon icon={RefreshIcon} size={16} strokeWidth={1.5} />
         Reset
-      </button>
+      </Button>
 
-      <button
-        className="toolbar-btn"
+      <Button
+        variant="toolbar"
         onClick={onFullscreen}
         aria-label="Toggle fullscreen"
         title="Toggle fullscreen for projection"
       >
         <HugeiconsIcon icon={FullScreenIcon} size={16} strokeWidth={1.5} />
         Fullscreen
-      </button>
+      </Button>
 
       {isLoggedIn && (
         <>
-          <div className="toolbar-divider" aria-hidden="true" />
+          <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
 
-          <button
-            className={`toolbar-btn ${saveStatus === "saved" ? "toolbar-btn-success" : saveStatus === "error" ? "toolbar-btn-error" : ""}`}
+          <Button
+            variant="toolbar"
+            className={cn(
+              saveStatus === "saved" && "text-green-400 border-green-400/40",
+              saveStatus === "error" && "text-red-400 border-red-400/40"
+            )}
             onClick={handleSave}
             disabled={surfaceCount === 0 || saveStatus === "saving"}
             aria-label="Save project"
@@ -251,11 +261,11 @@ export function Toolbar({
           >
             <HugeiconsIcon icon={FloppyDiskIcon} size={16} strokeWidth={1.5} />
             {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved!" : saveStatus === "error" ? "Failed" : "Save"}
-          </button>
+          </Button>
         </>
       )}
 
-      <div className="toolbar-divider" aria-hidden="true" />
+      <div className="w-px h-5 bg-white/10 shrink-0" aria-hidden="true" />
 
       <AuthButton />
     </div>
